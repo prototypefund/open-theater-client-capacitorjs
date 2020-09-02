@@ -101,6 +101,8 @@ nothing to do with the API nor the runtime environment of this app:
 
 console.log("loaded", _open_theater_js__WEBPACK_IMPORTED_MODULE_0__);
 
+_open_theater_js__WEBPACK_IMPORTED_MODULE_0__["helloWorld"]();
+
 
 window.openTheater = _open_theater_js__WEBPACK_IMPORTED_MODULE_0__;
 
@@ -119,9 +121,8 @@ window.openTheater = _open_theater_js__WEBPACK_IMPORTED_MODULE_0__;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getWifiSsid", function() { return getWifiSsid; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "detectServer", function() { return detectServer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "helloWorld", function() { return helloWorld; });
 /* harmony import */ var _capacitor_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Plugins", function() { return _capacitor_core__WEBPACK_IMPORTED_MODULE_0__["Plugins"]; });
-
 /*
 the adapter module to plug open-theater-client functions into different APIs depending on
 its runtime environment (browser, capacitorjs, cordova, kiosk apps, differnt hardware API). 

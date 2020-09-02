@@ -8,6 +8,8 @@ import * as openTheater from "./open-theater.js";
 
 console.log("loaded", openTheater);
 
+openTheater.helloWorld();
+
 
 window.openTheater = openTheater;
 

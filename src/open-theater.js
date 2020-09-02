@@ -27,5 +27,5 @@ function detectServer(){
      
 }
 
-export {/*updateFiles, setScreenBrightness, */getWifiSsid, detectServer, Plugins};
+export {/*updateFiles, setScreenBrightness, */getWifiSsid, detectServer, helloWorld};
  
