@@ -32,3 +32,20 @@ The App can be used in 3 ways:
 3) as an App wrapped with CapacitorJS for Android
 
 we will try to build open-theater.js as a bridge module to be imported into any webapp (in our case `www/app.js`) to keep the open-theater API functions and the API functions of different runtime environments (browser, capacitorjs, other wrappers like Kiosk Wrappers etc.) seperate and modular, yet in a consistent js API to be used inside of the main script (`www/app.js`)
+
+### Webpack
+
+This repo utilizes webpack to built `www/app.js`. So don't freak out if this looks a little bit unreadable. You can find the original app.js at `src/app.js` as well as `src/open-theater.js` which is the adapter script that will be included into app.js to bridge between all hardware and framework APIs and the open-theater client functions. 
+
+To build it, do 
+
+```bash
+npm install;
+npx webpack;
+```
+
+this way `www/app.js` will be build by webpack and webpack will include `open-theater.js` into it.
+
+If you don't like build tools, we understand (we also don't love them): You can also import `open-theater.js` manually into app.js for app.js is included as script of type="module" in ìndex.html. 
+
+If you don't understand what we are talking about, learn about ES6 modules and/or webpack or open an issue. We are also fighting with javascript.
