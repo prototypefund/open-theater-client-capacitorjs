@@ -1,0 +1,27 @@
+{
+  "name": "open-theater-client-capacitorjs",
+  "version": "0.0.1",
+  "description": "Demo client to display text, video and audio snippets triggered by the ]OPEN THEATER[ API.",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/open-theater/open-theater-client-capacitorjs.git"
+  },
+  "author": "team@open-theater.de",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/open-theater/open-theater-client-capacitorjs/issues"
+  },
+  "homepage": "https://gitlab.com/open-theater/open-theater-client-capacitorjs#readme",
+  "devDependencies": {
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^2.4.0",
+    "@capacitor/core": "^2.4.0"
+  }
+}
