@@ -10,6 +10,9 @@ console.log("loaded", openTheater);
 
 openTheater.helloWorld();
 
+openTheater.getWifiSsid().then((res)=>{
+    console.log(`wifi/network info: ${JSON.stringify(res)}`)
+});
 
 window.openTheater = openTheater;
 

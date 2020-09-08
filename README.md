@@ -37,15 +37,33 @@ we will try to build open-theater.js as a bridge module to be imported into any 
 
 This repo utilizes webpack to built `www/app.js`. So don't freak out if this looks a little bit unreadable. You can find the original app.js at `src/app.js` as well as `src/open-theater.js` which is the adapter script that will be included into app.js to bridge between all hardware and framework APIs and the open-theater client functions. 
 
-To build it, do 
+To build it, open a terminal window, navigate to the root directory of this repository and do: 
 
 ```bash
 npm install;
-npx webpack;
+npm build;
 ```
 
 this way `www/app.js` will be build by webpack and webpack will include `open-theater.js` into it.
 
-If you don't like build tools, we understand (we also don't love them): You can also import `open-theater.js` manually into app.js for app.js is included as script of type="module" in ìndex.html. 
+If you don't like build tools, we understand (we also don't love them): You can also import `open-theater.js` manually as ES6 module into app.js for app.js is included as script of type="module" in ìndex.html.
 
-If you don't understand what we are talking about, learn about ES6 modules and/or webpack or open an issue. We are also fighting with javascript.
+If you don't understand what we are talking about, learn about ES6 modules and/or webpack or open an issue. We are also fighting with javascript fatique, so we understand.
+
+
+### Dependencies
+
+this particular demo client works with CapacitorJS as wrapper around the javascript functions and HTML
+
+in order to create ios and android specific projects, after the above installation process do
+
+```bash
+npx cap add ios;
+npx cap open ios;
+npx cap add android;
+npx cap open;
+```
+
+this will create the Android Studio (needs to be installed) and XCode (needs to be installed) projects and opens them.
+
+`npm build` will internally not just do the webpack build, but also call `npx update` which will keep the Android Studio and XCode Projects up-to-date with all changes made inside the javascript and HTML files

@@ -16,16 +16,61 @@ import { Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/cor
 
 function helloWorld(){
     console.log("hello world",Plugins);
+    console.log("we are running in",Capacitor.getPlatform(), "environment");
+    console.log("Screenreader is available:",Capacitor.isPluginAvailable("ScreenReader"));
 }
 
-function getWifiSsid(){
-    console.log("TODO: getting wifi ssid from hardcoded function inside openTheater.js");   
+async function getWifiSsid(){
+    console.log("TODO: getting wifi ssid from hardcoded function inside openTheater.js");
+    
+    let ssid = await WifiWizard2.getConnectedSSID(); // Cordova Plugin
+    let status = await Plugins.Network.getStatus();
+    status.wifissid = ssid;
+
+    return status
+}
+
+function getBattery(){
+    let batterystate = Plugins.Device.getBatteryInfo();
+    console.log("battery:", batterystate);
+    return batterystate
 }
 
 function detectServer(){
-    console.log("TODO: detecting from hardcoded function inside openTheater.js");
+    console.log("TODO: detecting from hardcoded function inside open-theater.js");
      
 }
 
-export {/*updateFiles, setScreenBrightness, */getWifiSsid, detectServer, helloWorld};
+/**
+ * 
+ * @param {String} ssid
+ * @param {String} wifipassword
+ * iOS / Android only
+ * connects to wifi network via ssid and wifipassword if possible
+ * returns ssid if successful or null if unsucessful or in case that this feature is not supported
+ */
+async function connectToSSID(ssid,wifipassword){
+    let newssid = null;
+    if (Capacitor.getPlatform() === "ios") {
+        newssid = await WifiWizard2.iOSConnectNetwork(ssid,wifipassword).catch((err)=>{}); // Cordova Plugin
+    }
+    else if (Capacitor.getPlatform() === "android") {
+        newssid = await WifiWizard2.connect(ssid,wifipassword).catch((err)=>{}; // Cordova Plugin
+        if (newssid === "NETWORK_CONNECTION_COMPLETED"){
+            newssid = ssid;
+        }
+    }
+    else {
+        console.log("connectToSSID is not available on this platform");
+    }
+    return newssid
+}
+
+
+function setScreenBrightness(level)
+{
+    console.log("setScreenBrightness is not available atm");
+}
+
+export { helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID/*updateFiles*/};
  

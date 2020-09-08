@@ -4,7 +4,8 @@
   "description": "Demo client to display text, video and audio snippets triggered by the ]OPEN THEATER[ API.",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx webpack; npx cap sync;"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,11 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
+    "@capacitor/android": "^2.4.0",
     "@capacitor/cli": "^2.4.0",
-    "@capacitor/core": "^2.4.0"
+    "@capacitor/core": "^2.4.0",
+    "@capacitor/ios": "^2.4.0",
+    "es6-promise-plugin": "^4.2.2",
+    "wifiwizard2": "^3.1.1"
   }
 }
