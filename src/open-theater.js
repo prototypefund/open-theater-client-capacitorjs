@@ -161,6 +161,11 @@ async function connectToSSID(ssid,wifipassword){
     return newssid
 }
 
+async function scanSSIDs(){ // possible with WifiWizard2 but only for Android devices. iOS blocks this in general.
+    let networks = await WifiWizard2.scan();
+    console.log(networks)
+}
+
 
 function setScreenBrightness(level)
 {
@@ -178,9 +183,9 @@ function setScreenBrightness(level)
             }
         );
 
-    })
-    
+    })   
 }
 
-export { helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
+
+export { helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID, scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
  
