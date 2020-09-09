@@ -164,7 +164,22 @@ async function connectToSSID(ssid,wifipassword){
 
 function setScreenBrightness(level)
 {
-    console.log("setScreenBrightness is not available atm");
+    return new Promise((resolve,reject)=>{
+
+        console.log("setScreenBrightness is not available atm");
+        cordova.plugins.brightness.setBrightness(level, 
+            ()=>{
+            resolve(true)
+            },
+            (err)=>{
+                console.log("error setting screen brightness",err);
+                
+                reject(null)
+            }
+        );
+
+    })
+    
 }
 
 export { helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
