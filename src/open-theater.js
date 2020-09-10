@@ -133,28 +133,35 @@ function getBattery(){
  * reports back
  */
 async function detectServer(config={ssid:"opentheater",serveruri:"http://192.168.3.189:8080/"}){
-    
+  
+  // TODO: this should be its own method/function, and not necessary be part of detectServer. 
   if (Capacitor.getPlatform() === "android"){
       
     let networksAvailable= await scanSSIDs();
     let wifinetwork = null;
-    console.log(networksAvailable, typeof networksAvailable);
     
     for (let network of networksAvailable){
-      
-      console.log(network);
 
       if (network.SSID && network.SSID.contains(config.ssid) ){
+
         console.log(`found wifi network with ssid ${config.ssid}. will attempt to connect`);
         wifinetwork = await connectToSSID(network.SSID,false); // false because opentheater networks should be open anyhow
         break;
+
       }
 
     }
-    //*/
+    
     console.log(`connected to ${wifinetwork}`)
-      
   }
+
+
+
+  // actual serverConnection/search:
+
+  let services = await fetch(config.serveruri).json(); // CONTINUE HERE
+  console.log(services);
+
 }
 
 /**
