@@ -12,7 +12,7 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
-import { Plugins, FilesystemDirectory, FilesystemEncoding } from '@capacitor/core';
+import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
 
 const { Filesystem } = Plugins;
 
@@ -99,13 +99,18 @@ async function deleteFile(path) {
 
 
 function helloWorld(){
-    console.log("hello world",Plugins);
+    console.log("]OPEN THEATER[ Client is starting");
     console.log("we are running in",Capacitor.getPlatform(), "environment");
     console.log("Screenreader is available:",Capacitor.isPluginAvailable("ScreenReader"));
 }
 
 async function getWifiSsid(){
-    console.log("TODO: getting wifi ssid from hardcoded function inside openTheater.js");
+    
+    if(Capacitor.getPlatform() === "web")
+    {
+      console.log("scanSSIDs is not available on this platform. You better involve the user here.");
+      return false
+    }
     
     let ssid = await WifiWizard2.getConnectedSSID(); // Cordova Plugin
     let status = await Plugins.Network.getStatus();
@@ -120,8 +125,36 @@ function getBattery(){
     return batterystate
 }
 
-function detectServer(){
-    console.log("TODO: detecting from hardcoded function inside open-theater.js");
+/**
+ * 
+ * @param {Obj} config 
+ * tries to connect to wifi with config.ssid if possible
+ * then tries to connect to serveruri in whichever network is available
+ * reports back
+ */
+async function detectServer(config={ssid:"opentheater",serveruri:"http://192.168.3.189:8080/"}){
+    
+  if (Capacitor.getPlatform() === "android"){
+      
+    let networksAvailable= await scanSSIDs();
+    let wifinetwork = null;
+    console.log(networksAvailable, typeof networksAvailable);
+    
+    for (let network of networksAvailable){
+      
+      console.log(network);
+
+      if (network.SSID && network.SSID.contains(config.ssid) ){
+        console.log(`found wifi network with ssid ${config.ssid}. will attempt to connect`);
+        wifinetwork = await connectToSSID(network.SSID,false); // false because opentheater networks should be open anyhow
+        break;
+      }
+
+    }
+    //*/
+    console.log(`connected to ${wifinetwork}`)
+      
+  }
 }
 
 /**
@@ -162,8 +195,15 @@ async function connectToSSID(ssid,wifipassword){
 }
 
 async function scanSSIDs(){ // possible with WifiWizard2 but only for Android devices. iOS blocks this in general.
+    if(Capacitor.getPlatform() !== "android")
+    {
+      console.log("scanSSIDs is not available on this platform. You better involve the user here.");
+      return false
+    }
     let networks = await WifiWizard2.scan();
-    console.log(networks)
+    console.log(networks);
+    
+    return networks
 }
 
 
@@ -187,5 +227,7 @@ function setScreenBrightness(level)
 }
 
 
-export { helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID, scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
+export { 
+  helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID, 
+  scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
  
