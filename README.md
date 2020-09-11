@@ -67,3 +67,8 @@ npx cap open;
 this will create the Android Studio (needs to be installed) and XCode (needs to be installed) projects and opens them.
 
 `npm build` will internally not just do the webpack build, but also call `npx update` which will keep the Android Studio and XCode Projects up-to-date with all changes made inside the javascript and HTML files
+
+
+## icons & Splashscreens iOS
+
+please change the icon-set if you build your version. You find instructions how to change icons and splashscreens on iOS & Android in capacitorJS on the web, for example here (although the link provided to make the icon sets requires giving them data, so maybe just follow the instructions and create your icons elsewhere): https://www.joshmorony.com/adding-icons-splash-screens-launch-images-to-capacitor-projects/
