@@ -5,7 +5,6 @@ nothing to do with the API nor the runtime environment of this app:
 */
 import * as openTheater from "./open-theater.js";
 
-
 console.log("loaded", openTheater);
 
 openTheater.helloWorld();
@@ -13,6 +12,21 @@ openTheater.helloWorld();
 openTheater.getWifiSsid().then((res)=>{
     console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
+
+let services = loadServicesFileIfExists();
+
+if (!services)
+services = await openTheater.detectServer() // searches list of repositories for list of services
+
+let service_chosen = await showServicesToUserAndAwaitInput();
+
+let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+
+if (fileList.stringify() !== lastFileList){
+    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+}
+
+
 
 window.openTheater = openTheater;
 
