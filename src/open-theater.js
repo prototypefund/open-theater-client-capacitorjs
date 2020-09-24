@@ -236,5 +236,6 @@ function setScreenBrightness(level)
 
 export { 
   helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID, 
-  scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat};
+  scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat
+};
  

@@ -66,7 +66,7 @@ npx cap open;
 
 this will create the Android Studio (needs to be installed) and XCode (needs to be installed) projects and opens them.
 
-`npm build` will internally not just do the webpack build, but also call `npx update` which will keep the Android Studio and XCode Projects up-to-date with all changes made inside the javascript and HTML files
+`npm run build` will internally not just do the webpack build, but also call `npx update` which will keep the Android Studio and XCode Projects up-to-date with all changes made inside the javascript and HTML files
 
 
 ## icons & Splashscreens iOS
