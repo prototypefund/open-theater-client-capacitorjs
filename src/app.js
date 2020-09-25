@@ -13,20 +13,37 @@ openTheater.getWifiSsid().then((res)=>{
     console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
 
-let services = loadServicesFileIfExists();
+////// MAIN ////////
 
-if (!services)
-services = await openTheater.detectServer() // searches list of repositories for list of services
+(async function(){
 
-let service_chosen = await showServicesToUserAndAwaitInput();
+    let services = loadServicesFileIfExists();
 
-let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+    if (!services){
+    
+        services = await openTheater.detectServer() // searches list of repositories for list of services
+        console.log(`found services:`,services);
+    }
+    /*
+    let service_chosen = await showServicesToUserAndAwaitInput();
 
-if (fileList.stringify() !== lastFileList){
-    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+    let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+
+    if (fileList.stringify() !== lastFileList){
+        await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+    
+    */
+    
+    
+
+})()
+
+////// END MAIN //////
+
+
+function loadServicesFileIfExists(){
+    return null
 }
-
-
 
 window.openTheater = openTheater;
 

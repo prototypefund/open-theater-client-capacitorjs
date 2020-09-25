@@ -17,10 +17,11 @@ import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } 
 const { Filesystem } = Plugins;
 
 const PLATFORM_WEB = "web";
-const PLATFORM_ANDROID = "android";
-const PLATFORM_IOS = "ios";
-const SEARCH_SSID = "opentheater";
-const SERVER_URI = "https://dingsda.uber.space/tellmemore/";
+const PLATFORM__IS_ANDROID = function(){ return Capacitor.getPlatform() === "android" };
+const PLATFORM_IS_IOS = function(){ return Capacitor.getPlatform() === "ios" };;
+const SEARCH_SSID = "open.theater";
+const SEARCH_PW = "live1234";
+const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
 
 async function createDir(path){
     
@@ -135,35 +136,45 @@ function getBattery(){
  * then tries to connect to serveruri in whichever network is available
  * reports back
  */
-async function detectServer(config= [ {ssid: mythaternetwork, serveruri: myprivatelocalserverURI} ]){
+async function detectServer(config = [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]){
   
-  // TODO: this should be its own method/function, and not necessary be part of detectServer. 
-  if (Capacitor.getPlatform() === PLATFORM_ANDROID){
+  for (let endpoint of config){
+
+    if (endpoint.ssid){ // if ssid given, we try to connect to a wifi
+
+      let wifinetwork = null;
+
+      if (!endpoint.pw){endpoint.pw = false} 
+
+      wifinetwork = await connectToSSID(endpoint.ssid,endpoint.pw);
       
-    let networksAvailable = await scanSSIDs();
-    let wifinetwork = null;
-    
-    for (let network of networksAvailable){
-
-      if (network.SSID && network.SSID.contains(config.ssid) ){
-
-        console.log(`found wifi network with ssid ${config.ssid}. will attempt to connect`);
-        wifinetwork = await connectToSSID(network.SSID,false); // false because opentheater networks should be open anyhow
-        break;
-
+      if (!wifinetwork){
+        console.log(`
+        could not connect to wifi network with ssid ${endpoint.ssid}. 
+        will try next repo server in config...`);        
+        continue;
       }
-
-    }
     
-    console.log(`connected to ${wifinetwork}`)
-  }
-
-
+    }
 
   // actual serverConnection/search:
 
-  let services = await fetch(config.serveruri).then((res)=>{return res.json()}); // CONTINUE HERE: MQTT or Socket or REST?
-  console.log(services);
+    let services = await fetch(config.serveruri).then(async (res)=>{return await res.json()}); // CONTINUE HERE: MQTT or Socket or REST?
+    console.log(services);
+
+    if (!services){
+      console.log(`
+        could not connect to server ${endpoint.serceruri}. 
+        will try next repo server in config...`);        
+        continue;
+    }
+
+    return services
+  }
+
+  console.log(`could not connect to any server listed in the repo list config`);
+  
+  return null
 
 }
 
@@ -189,11 +200,11 @@ async function updateFiles(config) { // config obj: { urls:[] , updateObj: null}
  */
 async function connectToSSID(ssid,wifipassword){
     let newssid = null;
-    if (Capacitor.getPlatform() === PLATFORM_IOS) {
+    if (PLATFORM_IS_IOS) {
         newssid = await WifiWizard2.iOSConnectNetwork(ssid,wifipassword)
         .catch((err)=>{console.log("error connceting to ssid",ssid,err)}); // Cordova Plugin
     }
-    else if (Capacitor.getPlatform() === PLATFORM_ANDROID) {
+    else if (PLATFORM_IS_ANDROID) {
         newssid = await WifiWizard2.connect(ssid,wifipassword).catch((err)=>{}); // Cordova Plugin
         if (newssid === "NETWORK_CONNECTION_COMPLETED"){
             newssid = ssid;
@@ -206,7 +217,7 @@ async function connectToSSID(ssid,wifipassword){
 }
 
 async function scanSSIDs(){ // possible with WifiWizard2 but only for Android devices. iOS blocks this in general.
-    if (Capacitor.getPlatform() !== PLATFORM_ANDROID)
+    if (!PLATFORM_IS_ANDROID)
     {
       console.log("scanSSIDs is not available on this platform. You better involve the user here.");
       return false
