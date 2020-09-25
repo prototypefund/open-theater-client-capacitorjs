@@ -158,8 +158,11 @@ async function detectServer(config = [ {ssid: SEARCH_SSID, pw: SEARCH_PW, server
     }
 
   // actual serverConnection/search:
-
-    let services = await fetch(config.serveruri).then(async (res)=>{return await res.json()}); // CONTINUE HERE: MQTT or Socket or REST?
+    console.log("fetching services from", endpoint.serveruri)
+    let services = await fetch(endpoint.serveruri).then(async (res)=>{
+      console.log("got response from",endpoint.serveruri)
+      return await res.json()}
+    ); // CONTINUE HERE: MQTT or Socket or REST?
     console.log(services);
 
     if (!services){
