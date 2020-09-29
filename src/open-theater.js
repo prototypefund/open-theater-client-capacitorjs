@@ -16,13 +16,49 @@ import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } 
 
 const { Filesystem } = Plugins;
 
-function getPlatform(){
-  return Capacitor.getPlatform();
-}
 
 let PLATFORM_IS_WEB =  (getPlatform() === "web");
 let PLATFORM_IS_ANDROID = (getPlatform() === "android");
 let PLATFORM_IS_IOS = (getPlatform() === "ios");
+
+
+const replaceURLStrings = [{
+  "{{OPENTHEATER_APP_ID}}": openTheater.deviceId(),
+  "{{OPENTHEATER_API_VERSION}}": openTheater.version
+}]
+
+
+function modifyURLString(input){
+  
+  return input;
+  
+  // TODO: Kristian
+    /*
+    let triggerURL = new URL(services.triggerUri); 
+          
+    if(triggerURL.protocol == "wss:") {}
+    if(triggerURL.protocol == "ws:") {}
+
+    if(triggerURL.protocol == "mqtt:") {}
+
+    if(triggerURL.protocol == "http:") {}
+    if(triggerURL.protocol == "https:") {}
+
+    triggerURL.searchParams.get('token');
+    triggerURL.search == "?token={{OPENTHEATER_APP_ID}}"
+
+    triggerURL.toString()
+    */
+
+  
+}
+
+
+
+
+function getPlatform(){
+  return Capacitor.getPlatform();
+}
 
 async function createDir(path){
     

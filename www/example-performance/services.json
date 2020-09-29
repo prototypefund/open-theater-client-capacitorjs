@@ -1,0 +1,20 @@
+{
+    "services": [{
+        "triggerUri": "wss://foo.bar",
+        "provisioningUri": "xxxxxxx",
+        "serviceType": "text",
+        "label": "DE Read local"
+    },
+    {
+        "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
+        "provisioningUri": "xxxxxxx",
+        "serviceType": "video",
+        "label": "DE Sign local"
+    },
+    {
+        "triggerUri": "https://foo.bar",
+        "provisioningUri": "xxxxxxx",
+        "serviceType": "video",
+        "label": "EN Sign local"
+    }]
+}

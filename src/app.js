@@ -9,7 +9,7 @@ const SEARCH_SSID = "open.theater";
 const SEARCH_PW = "live1234";
 const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
 const TESTCONFIG = [ 
-    {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI},
+    {/*ssid: SEARCH_SSID, pw: SEARCH_PW, */serveruri: "/example-performance/services.json?token={{OPENTHEATER_APP_ID}}"},
     {serveruri: SERVER_URI},
 ];
 
@@ -31,9 +31,9 @@ openTheater.getWifiSsid().then((res)=>{
     
         services = await openTheater.detectServer(TESTCONFIG) // searches list of repositories for list of services
         console.log(`found services:`,services);
-    }
+
     /*
-    let service_chosen = await showServicesToUserAndAwaitInput();
+    let service_chosen = await showServicesToUserAndAwaitInput(); // TODO: Philip
 
     let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
 
@@ -42,8 +42,6 @@ openTheater.getWifiSsid().then((res)=>{
     
     */
     
-    
-
 })()
 
 ////// END MAIN //////
