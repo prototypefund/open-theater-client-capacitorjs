@@ -5,6 +5,14 @@ nothing to do with the API nor the runtime environment of this app:
 */
 import * as openTheater from "./open-theater.js";
 
+const SEARCH_SSID = "open.theater";
+const SEARCH_PW = "live1234";
+const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
+const TESTCONFIG = [ 
+    {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI},
+    {serveruri: SERVER_URI},
+];
+
 console.log("loaded", openTheater);
 
 openTheater.helloWorld();
@@ -21,7 +29,7 @@ openTheater.getWifiSsid().then((res)=>{
 
     if (!services){
     
-        services = await openTheater.detectServer() // searches list of repositories for list of services
+        services = await openTheater.detectServer(TESTCONFIG) // searches list of repositories for list of services
         console.log(`found services:`,services);
     }
     /*

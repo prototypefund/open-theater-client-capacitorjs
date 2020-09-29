@@ -16,12 +16,13 @@ import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } 
 
 const { Filesystem } = Plugins;
 
-const PLATFORM_WEB = "web";
-const PLATFORM__IS_ANDROID = function(){ return Capacitor.getPlatform() === "android" };
-const PLATFORM_IS_IOS = function(){ return Capacitor.getPlatform() === "ios" };;
-const SEARCH_SSID = "open.theater";
-const SEARCH_PW = "live1234";
-const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
+function getPlatform(){
+  return Capacitor.getPlatform();
+}
+
+let PLATFORM_IS_WEB =  (getPlatform() === "web");
+let PLATFORM_IS_ANDROID = (getPlatform() === "android");
+let PLATFORM_IS_IOS = (getPlatform() === "ios");
 
 async function createDir(path){
     
@@ -110,7 +111,7 @@ function helloWorld(){
 
 async function getWifiSsid(){
     
-    if(Capacitor.getPlatform() === PLATFORM_WEB)
+    if(PLATFORM_IS_WEB)
     {
       console.log("scanSSIDs is not available on this platform. You better involve the user here.");
       return false
@@ -136,7 +137,7 @@ function getBattery(){
  * then tries to connect to serveruri in whichever network is available
  * reports back
  */
-async function detectServer(config = [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]){
+async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]*/){
   
   for (let endpoint of config){
 
@@ -204,6 +205,8 @@ async function updateFiles(config) { // config obj: { urls:[] , updateObj: null}
 async function connectToSSID(ssid,wifipassword){
     let newssid = null;
     if (PLATFORM_IS_IOS) {
+        console.log("platform is IOS",PLATFORM_IS_IOS);
+        
         newssid = await WifiWizard2.iOSConnectNetwork(ssid,wifipassword)
         .catch((err)=>{console.log("error connceting to ssid",ssid,err)}); // Cordova Plugin
     }
@@ -253,7 +256,8 @@ function setScreenBrightness(level)
 
 
 export { 
-  helloWorld, 
+  helloWorld,
+  getPlatform, 
   getWifiSsid, 
   getBattery, 
   detectServer, 
