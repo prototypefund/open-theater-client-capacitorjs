@@ -17,12 +17,15 @@
 
     <div id="app">
 
-        <div id="serviceList" v-if="serviceList.visible" style="display: flex; flex-direction: column; padding: 10px;">
+        <div id="serviceList" v-if="serviceList.visible" style="display: flex; flex-direction: column;">
             <h4 class="center">]OPEN THEATER[ </h4>
             <h5 class="center">found the following services:</h5>
-            <button v-for="item in serviceList.items" class="btn-large waves-effect waves-light" style="margin: 10px;">
+            <div v-for="item in serviceList.items" class="center"> 
+                <button class="btn-large waves-effect waves-light" style="margin: 10px;" 
+                v-on:click="serviceList.chosen(item)">
                 {{ item.label }}
-            </button>
+                </button>
+            </div>
         </div>
 
     </div>

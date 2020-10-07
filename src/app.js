@@ -27,7 +27,10 @@ var app = new Vue({ // imported in index.html because Philip is to dumb to do it
     data: {
         serviceList:{
             visible:false,
-            items:[]
+            items:[],
+            chosen: function (inp) {
+                document.dispatchEvent(new CustomEvent('serviceChosen', { detail:inp }))
+            }
         }
     }
   })
@@ -57,7 +60,13 @@ async function showServicesToUserAndAwaitInput(services){
         app.serviceList.items.push(service);
     }
     
-    return choice
+    return new Promise((resolve,reject)=>{ // returns promise with one time only event listener
+        document.addEventListener("serviceChosen",function(e){
+            console.log(e);
+            
+            resolve(e.detail)
+        },{ once: true })
+    })
 }
 
 window.openTheater = openTheater;
