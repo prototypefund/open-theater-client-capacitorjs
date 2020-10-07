@@ -21,12 +21,12 @@ let PLATFORM_IS_WEB =  (getPlatform() === "web");
 let PLATFORM_IS_ANDROID = (getPlatform() === "android");
 let PLATFORM_IS_IOS = (getPlatform() === "ios");
 
-
+/*
 const replaceURLStrings = [{
   "{{OPENTHEATER_APP_ID}}": openTheater.deviceId(),
   "{{OPENTHEATER_API_VERSION}}": openTheater.version
 }]
-
+*/
 
 function modifyURLString(input){
   
@@ -36,7 +36,7 @@ function modifyURLString(input){
     /*
     let triggerURL = new URL(services.triggerUri); 
           
-    if(triggerURL.protocol == "wss:") {}
+    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below
     if(triggerURL.protocol == "ws:") {}
 
     if(triggerURL.protocol == "mqtt:") {}
@@ -290,6 +290,22 @@ function setScreenBrightness(level)
     })   
 }
 
+function getServiceProtocol(service){
+  if (!service || typeof service !== "string"){
+    throw "getServiceProtocol requires parameter service (string)";
+  }
+
+  if (service.startsWith("ws://") || service.startsWith("wss://")){
+    return "websockets"
+  }
+  if (service.startsWith("http://") || service.startsWith("https://")){
+    return "http"
+  }
+  if (service.startsWith("mqtt://")){
+    return "mqtt"
+  }
+}
+
 
 export { 
   helloWorld,
@@ -306,6 +322,7 @@ export {
   readDir, 
   fileWrite, 
   deleteFile, 
-  getFileStat
+  getFileStat,
+  getServiceProtocol
 };
  
