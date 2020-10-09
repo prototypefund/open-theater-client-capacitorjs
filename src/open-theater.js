@@ -307,9 +307,14 @@ function getServiceProtocol(service){
 }
 
 // CONTINUE HERE
-async function checkForUpdates(service){
-  
-  return "bumms"
+async function getProvisioningFilesFromService(service){
+  if(!service.provisioningUri || typeof service.provisioningUri !== "string"){
+    throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
+  }
+
+  const listOfAssetFiles = await fetch(service.provisioningUri)
+
+  return
 }
 
 export { 
@@ -321,7 +326,6 @@ export {
   setScreenBrightness, 
   connectToSSID, 
   scanSSIDs,
-  /*updateFiles,*/
   readFile, 
   createDir, 
   readDir, 
@@ -329,6 +333,7 @@ export {
   deleteFile, 
   getFileStat,
   getServiceProtocol,
-  checkForUpdates
+  getProvisioningFilesFromService,
+  /*updateFiles,*/
 };
  

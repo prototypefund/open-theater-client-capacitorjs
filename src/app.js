@@ -18,6 +18,14 @@ const TESTCONFIG = [
     serveruri: SERVER_URI
   },
 ];
+const DOM_SERVICELISTBUTTONS = document.querySelector('#serviceListButtons');
+const DOM_SERVICELIST = document.querySelector('#serviceList')
+
+
+
+
+//////////////////////////////////////////////////////////////////
+
 
 console.log("loaded", openTheater);
 
@@ -49,9 +57,11 @@ async function showServicesToUser(services) {
     // create buttons:
     const button = htmlToElem(
       `<div style="margin:5px">
-        <button class="btn-large waves-effect waves-light">${service.label}</button>
+        <button class="btn-large waves-effect waves-light">
+          ${service.label}
+        </button>
       </div>`);
-    document.querySelector('#serviceListButtons').appendChild(button);
+    DOM_SERVICELISTBUTTONS.appendChild(button);
     button.addEventListener('click', ()=> {
       document.dispatchEvent(new CustomEvent('serviceChosen', {detail:service}))
     })
@@ -78,11 +88,15 @@ window.openTheater = openTheater;
 
 // 3. wait for user inputs or start of incoming cues via trigger API
 
-
+/////////////////////////////////////
 ///////////// MAIN FLOW /////////////
 /////// to be read top to bottom ////
+initUserFlow();
 
-(async function init() {
+async function initUserFlow() {
+
+  DOM_SERVICELISTBUTTONS.innerHTML = "";
+  DOM_SERVICELIST.classList.remove("hidden");
 
   let services = await loadServicesFileIfExists().catch((err)=>{});
 
@@ -95,22 +109,33 @@ window.openTheater = openTheater;
 
   console.log("awaiting showServices with param", services);
     
-  let service_chosen = await showServicesToUser(services); // TODO: Philip
-    
-  document.addEventListener("serviceChosen",function(e) { // and wait for input
+  await showServicesToUser(services);
+  
+  // and wait for input from users:
+  document.addEventListener("serviceChosen",function(e) { 
     console.log(e);
     
+    DOM_SERVICELIST.classList.add("hidden");
     initService(e.detail) // NEXT
 
   },{ once: true }) // close EventListener after being triggered
     
-})()
+}
 
-async function initService(service_chosen){
-  console.log(`service ${service_chosen.label} was chosen by user and will be initiated`);
+async function initService(service){
+  console.log(`service ${service.label} was chosen by user and will be initiated`);
   
-  let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+  let fileList =  await openTheater.getProvisioningFilesFromService(service); // check provisioning API for new content
+  if (!fileList){
 
+    alert(`could not connect to ${service.label}'s provisioning endpoint.`+
+    "Please check your Network connection and then press OK\n"+
+    "Will reconnect on OK and restart the process. If error remains, please contact the theater")
+    
+    return initUserFlow();
+  }
+
+  console.log(fileList) // success // CONTINUE HERE
   /*
   if (fileList.stringify() !== lastFileList){
     await showUpdateOptionToUserOrUpdateAutomatically(fileList);
@@ -120,3 +145,4 @@ async function initService(service_chosen){
 
 
 ////// END MAIN FLOW //////////////////
+///////////////////////////////////////
