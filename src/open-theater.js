@@ -306,6 +306,11 @@ function getServiceProtocol(service){
   }
 }
 
+// CONTINUE HERE
+async function checkForUpdates(service){
+  
+  return "bumms"
+}
 
 export { 
   helloWorld,
@@ -323,6 +328,7 @@ export {
   fileWrite, 
   deleteFile, 
   getFileStat,
-  getServiceProtocol
+  getServiceProtocol,
+  checkForUpdates
 };
  

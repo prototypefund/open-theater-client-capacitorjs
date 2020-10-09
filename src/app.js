@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* 
 the actual app, handling open-theater-api via open-theater.js as well as
 all the UI things and other stuff that you might to customize that has 
@@ -9,8 +10,13 @@ const SEARCH_SSID = "open.theater";
 const SEARCH_PW = "live1234";
 const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
 const TESTCONFIG = [ 
-    {/*ssid: SEARCH_SSID, pw: SEARCH_PW, */serveruri: "/example-performance/services.json?token={{OPENTHEATER_APP_ID}}"},
-    {serveruri: SERVER_URI},
+  {   /* ssid: SEARCH_SSID, 
+        pw: SEARCH_PW, */
+    serveruri: "/example-performance/services.json?token={{OPENTHEATER_APP_ID}}"
+  },
+  {
+    serveruri: SERVER_URI
+  },
 ];
 
 console.log("loaded", openTheater);
@@ -18,55 +24,48 @@ console.log("loaded", openTheater);
 openTheater.helloWorld();
 
 openTheater.getWifiSsid().then((res)=>{
-    console.log(`wifi/network info: ${JSON.stringify(res)}`)
+  console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
 
 
-var app = new Vue({ // imported in index.html because Philip is to dumb to do it with npm and webpack
-    el: '#app',
-    data: {
-        serviceList:{
-            visible:false,
-            items:[],
-            chosen: function (inp) {
-                document.dispatchEvent(new CustomEvent('serviceChosen', { detail:inp }))
-            }
-        }
-    }
-  })
-  window.app = app;
-
-async function loadServicesFileIfExists(){
-    return new Promise((resolve,reject)=>{
-        reject(null)
-    }) // TODO: Philip
+async function loadServicesFileIfExists() {
+  return new Promise((resolve,reject)=>{
+    reject(null)
+  }) // TODO: Philip
 }
 
-async function showServicesToUserAndAwaitInput(services){
-    console.log("showServicesToUserAndAwaitInput got:",services);
-    
-    if (services.length < 1){return null}
+async function showServicesToUser(services) {
+  console.log("showServicesToUser got:",services);
+      
+  if (services.length < 1) {return null}
 
-    let choice = null;
+  let choice = null; // with rxjs this could become a return value
 
-    app.serviceList.visible = true; // show list
+  // document.querySelector("#serviceList")// show ServiceList
 
-    for (let service of services){
-        console.log(service);
-        let protocol = openTheater.getServiceProtocol(service.triggerUri);
-        
-        console.log(protocol)
-        
-        app.serviceList.items.push(service);
-    }
-    
-    return new Promise((resolve,reject)=>{ // returns promise with one time only event listener
-        document.addEventListener("serviceChosen",function(e){
-            console.log(e);
-            
-            resolve(e.detail)
-        },{ once: true })
+  for (const service of services) {
+    console.log(service);
+
+    // create buttons:
+    const button = htmlToElem(
+      `<div style="margin:5px">
+        <button class="btn-large waves-effect waves-light">${service.label}</button>
+      </div>`);
+    document.querySelector('#serviceListButtons').appendChild(button);
+    button.addEventListener('click', ()=> {
+      document.dispatchEvent(new CustomEvent('serviceChosen', {detail:service}))
     })
+
+  }
+    
+  return true
+}
+
+function htmlToElem(html) {
+  let temp = document.createElement('template');
+  html = html.trim(); // Never return a space text node as a result
+  temp.innerHTML = html;
+  return temp.content.firstChild;
 }
 
 window.openTheater = openTheater;
@@ -80,32 +79,44 @@ window.openTheater = openTheater;
 // 3. wait for user inputs or start of incoming cues via trigger API
 
 
-////// MAIN ////////
+///////////// MAIN FLOW /////////////
+/////// to be read top to bottom ////
 
-(async function(){
+(async function init() {
 
-    let services = await loadServicesFileIfExists().catch((err)=>{});
+  let services = await loadServicesFileIfExists().catch((err)=>{});
 
-    if (!services){
-        services = await openTheater.detectServer(TESTCONFIG) // searches list of repositories for list of services
-        services = services.services;
-        console.log(`found services:`,services);
-        (services)
-    }
+  if (!services) {
+    services = await openTheater.detectServer(TESTCONFIG) // searches list of repositories for list of services
+    services = services.services;
+    console.log(`found services:`,services);
+    (services)
+  }
 
-    console.log("awaiting showServices with param", services);
+  console.log("awaiting showServices with param", services);
     
-    let service_chosen = await showServicesToUserAndAwaitInput(services); // TODO: Philip
-    console.log("service_chosen:",service_chosen);
+  let service_chosen = await showServicesToUser(services); // TODO: Philip
     
-    /*
-    let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+  document.addEventListener("serviceChosen",function(e) { // and wait for input
+    console.log(e);
+    
+    initService(e.detail) // NEXT
 
-    if (fileList.stringify() !== lastFileList){
-        await showUpdateOptionToUserOrUpdateAutomatically(fileList);
-    
-    */
+  },{ once: true }) // close EventListener after being triggered
     
 })()
 
-////// END MAIN //////
+async function initService(service_chosen){
+  console.log(`service ${service_chosen.label} was chosen by user and will be initiated`);
+  
+  let fileList =  await openTheater.checkForUpdates(service_chosen); // check provisioning API for new content
+
+  /*
+  if (fileList.stringify() !== lastFileList){
+    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+  }
+  */
+}
+
+
+////// END MAIN FLOW //////////////////

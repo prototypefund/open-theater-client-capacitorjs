@@ -17,25 +17,21 @@
 
     <div id="app">
 
-        <div id="serviceList" v-if="serviceList.visible" style="display: flex; flex-direction: column;">
+        <div id="serviceList" class="center" style="display: flex; flex-direction: column;">
             <h4 class="center">]OPEN THEATER[ </h4>
             <h5 class="center">found the following services:</h5>
-            <div v-for="item in serviceList.items" class="center"> 
-                <button class="btn-large waves-effect waves-light" style="margin: 10px;" 
-                v-on:click="serviceList.chosen(item)">
-                {{ item.label }}
-                </button>
+            <br>
+            <div id="serviceListButtons" style="display: flex; flex-direction: column;">
+                 <!-- app.js will inject buttons here -->
             </div>
         </div>
 
     </div>
 
 
-   
+
 </body>
-<script type="text/javascript" src="js/materialize.min.js"></script>
-<script> M.AutoInit();</script>
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
 <script src="app.js" type="module"></script>
 
 </html>
