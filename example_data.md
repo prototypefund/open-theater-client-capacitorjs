@@ -28,7 +28,7 @@
 
 
 
-/// example response to updatesNeeded()
+/// example response to getFileListFromService()
 
 
 [

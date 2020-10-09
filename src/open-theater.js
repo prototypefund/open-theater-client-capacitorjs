@@ -36,7 +36,7 @@ function modifyURLString(input){
     /*
     let triggerURL = new URL(services.triggerUri); 
           
-    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below
+    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below, maybe it can shorten this part?
     if(triggerURL.protocol == "ws:") {}
 
     if(triggerURL.protocol == "mqtt:") {}
