@@ -13,6 +13,7 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
+import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
 
@@ -52,8 +53,6 @@ function modifyURLString(input){
 
   
 }
-
-
 
 
 function getPlatform(){
@@ -312,10 +311,18 @@ async function getProvisioningFilesFromService(service){
     throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
   }
 
-  const listOfAssetFiles = await fetch(service.provisioningUri)
+  const listOfAssetFiles = await fetch(service.provisioningUri);
 
-  return
+  return listOfAssetFiles
 }
+
+
+async function getFileListFromCache(service){
+    projectsAssetDir = path.join(MEDIA_BASE_PATH + service.serveruri);
+
+    return await readDir(projectsAssetDir);
+}
+
 
 export { 
   helloWorld,
@@ -334,6 +341,7 @@ export {
   getFileStat,
   getServiceProtocol,
   getProvisioningFilesFromService,
+  getFileListFromCache,
   /*updateFiles,*/
 };
  

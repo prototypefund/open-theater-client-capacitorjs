@@ -9,7 +9,8 @@ import * as openTheater from "./open-theater.js";
 const SEARCH_SSID = "open.theater";
 const SEARCH_PW = "live1234";
 const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
-const TESTCONFIG = [ 
+const MEDIA_BASE_PATH = "/media";
+const TESTCONFIG = [  // REPOLIST
   {   /* ssid: SEARCH_SSID, 
         pw: SEARCH_PW, */
     serveruri: "/example-performance/services.json?token={{OPENTHEATER_APP_ID}}"
@@ -36,35 +37,48 @@ openTheater.getWifiSsid().then((res)=>{
 });
 
 
-async function loadServicesFileIfExists() {
+async function loadServiceListFileIfExists() {
   return new Promise((resolve,reject)=>{
     reject(null)
   }) // TODO: Philip
 }
 
-async function showServicesToUser(services) {
-  console.log("showServicesToUser got:",services);
+async function showServicesToUser(serviceGroups) {
+  console.log("showServicesToUser got:",serviceGroups);
       
-  if (services.length < 1) {return null}
-
-  let choice = null; // with rxjs this could become a return value
+  if (serviceGroups.length < 1) {return null}
 
   // document.querySelector("#serviceList")// show ServiceList
 
-  for (const service of services) {
-    console.log(service);
+  for (const serviceGroup of serviceGroups) {
+    console.log("serviceGroup",serviceGroup);
 
-    // create buttons:
-    const button = htmlToElem(
-      `<div style="margin:5px">
-        <button class="btn-large waves-effect waves-light">
-          ${service.label}
-        </button>
-      </div>`);
-    DOM_SERVICELISTBUTTONS.appendChild(button);
-    button.addEventListener('click', ()=> {
-      document.dispatchEvent(new CustomEvent('serviceChosen', {detail:service}))
-    })
+    // create serviceGroup DIV
+    const serviceGroupTitle = serviceGroup.projectPath.join(":<br>");
+    const dom_serviceGroupDiv = htmlToElem(
+      `<div class="serviceGroup">
+          <h5>${serviceGroupTitle}</h5>
+      </div>
+      `
+    );
+    DOM_SERVICELISTBUTTONS.appendChild(dom_serviceGroupDiv);
+
+    for (const service of serviceGroup.channelList){
+      console.log(service);
+      
+      // create a button for each CHANNEL inside the serviceGroups CHANNELLIST:
+      const button = htmlToElem(
+        `<div style="margin:5px">
+          <button class="btn-large waves-effect waves-light">
+            ${service.label}
+          </button>
+        </div>`);
+      dom_serviceGroupDiv.appendChild(button);
+      button.addEventListener('click', ()=> {
+        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:service}))
+      })
+    }
+      
 
   }
     
@@ -81,35 +95,34 @@ function htmlToElem(html) {
 window.openTheater = openTheater;
 
 
-
-// 1. find servers & connect to one
-
-// 2. check if you need to update any data via provisioning API
-
-// 3. wait for user inputs or start of incoming cues via trigger API
-
 /////////////////////////////////////
 ///////////// MAIN FLOW /////////////
 /////// to be read top to bottom ////
 initUserFlow();
 
+// 1. find servers & connect to one
 async function initUserFlow() {
 
   DOM_SERVICELISTBUTTONS.innerHTML = "";
   DOM_SERVICELIST.classList.remove("hidden");
 
-  let services = await loadServicesFileIfExists().catch((err)=>{});
+  // Developers could ignore the Repolist and force the system to use only fixed ServiceList
+  // in here only for demo reference
+  let serviceList = await loadServiceListFileIfExists().catch((err)=>{});
 
-  if (!services) {
-    services = await openTheater.detectServer(TESTCONFIG) // searches list of repositories for list of services
-    services = services.services;
-    console.log(`found services:`,services);
-    (services)
+  // 1) Use REPOLIST (TESTCONFIG) to get SERVICELIST from one REPO:
+  if (!serviceList) { 
+  // 2) searches REPOLIST for SERVICELIST
+    serviceList = await openTheater.detectServer(TESTCONFIG) 
+    console.log(`found serviceList:`,serviceList);
   }
 
-  console.log("awaiting showServices with param", services);
+  // 3) get SERVICEGROUPS from SERVICELIST
+  let serviceGroups = serviceList.serviceGroups;
+
+  console.log("awaiting showServices with param", serviceGroups);
     
-  await showServicesToUser(services);
+  await showServicesToUser(serviceGroups);
   
   // and wait for input from users:
   document.addEventListener("serviceChosen",function(e) { 
@@ -122,6 +135,7 @@ async function initUserFlow() {
     
 }
 
+// 2. check if you need to update any data via provisioning API
 async function initService(service){
   console.log(`service ${service.label} was chosen by user and will be initiated`);
   
@@ -132,16 +146,22 @@ async function initService(service){
     "Please check your Network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
     
-    return initUserFlow();
+    return initUserFlow(); // go back to start
   }
 
   console.log(fileList) // success // CONTINUE HERE
+
+  // do we force API wise or UI side to already have chosen a performance/piece/event? where will that be filtered? only in UI or also API wise (probably only UI side)
+  //const lastFileList = await openTheater.getFileListFromCache(service);
+  
   /*
   if (fileList.stringify() !== lastFileList){
     await showUpdateOptionToUserOrUpdateAutomatically(fileList);
   }
   */
 }
+
+// 3. wait for user inputs or start of incoming cues via trigger API
 
 
 ////// END MAIN FLOW //////////////////
