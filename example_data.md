@@ -41,12 +41,6 @@
                     "provisioningUri": "xxxxxxx",
                     "channelType": "video",
                     "label": "EN Sign"
-                },
-                {
-                    "triggerUri": "https://foo.bar",
-                    "provisioningUri": "xxxxxxx",
-                    "channelType": "video",
-                    "label": "EN Sign"
                 }
             ]
         },

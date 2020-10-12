@@ -5,7 +5,3 @@
 .serviceGroup h5{
     color: #004d40 
 }
-
-.serviceGroup:nth-child(odd){
-    background-color:#e8eaf6
-}

@@ -57,7 +57,8 @@ async function showServicesToUser(serviceGroups) {
     const serviceGroupTitle = serviceGroup.projectPath.join(":<br>");
     const dom_serviceGroupDiv = htmlToElem(
       `<div class="serviceGroup">
-          <h5>${serviceGroupTitle}</h5>
+        <hr>  
+        <h5>${serviceGroupTitle}</h5>
       </div>
       `
     );
@@ -106,8 +107,7 @@ async function initUserFlow() {
   DOM_SERVICELISTBUTTONS.innerHTML = "";
   DOM_SERVICELIST.classList.remove("hidden");
 
-  // Developers could ignore the Repolist and force the system to use only fixed ServiceList
-  // in here only for demo reference
+  // only for demo reference (how to ignore REPOs)
   let serviceList = await loadServiceListFileIfExists().catch((err)=>{});
 
   // 1) Use REPOLIST (TESTCONFIG) to get SERVICELIST from one REPO:
@@ -121,7 +121,7 @@ async function initUserFlow() {
   let serviceGroups = serviceList.serviceGroups;
 
   console.log("awaiting showServices with param", serviceGroups);
-    
+
   await showServicesToUser(serviceGroups);
   
   // and wait for input from users:
