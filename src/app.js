@@ -140,7 +140,7 @@ async function initService(service){
   console.log(`service ${service.label} was chosen by user and will be initiated`);
   
   let fileList =  await openTheater.getProvisioningFilesFromService(service); // check provisioning API for new content
-  if (!fileList){
+  if (!fileList || !fileList.ok){
 
     alert(`could not connect to ${service.label}'s provisioning endpoint.`+
     "Please check your Network connection and then press OK\n"+
