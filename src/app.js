@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 /* 
 the actual app, handling open-theater-api via open-theater.js as well as
 all the UI things and other stuff that you might to customize that has 
@@ -6,23 +5,17 @@ nothing to do with the API nor the runtime environment of this app:
 */
 import * as openTheater from "./open-theater.js";
 
-const SEARCH_SSID = "open.theater";
-const SEARCH_PW = "live1234";
-const SERVER_URI = "https://www.open-theater.de/example-performance/services.json";
-const MEDIA_BASE_PATH = "/media";
 const TESTCONFIG = [  // REPOLIST
-  {   /* ssid: SEARCH_SSID, 
-        pw: SEARCH_PW, */
-    serveruri: "/example-performance/services.json?token={{OPENTHEATER_APP_ID}}"
+  {   /* ssid: "open.theater", 
+        pw: "live1234" */
+    serveruri: "/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
-    serveruri: SERVER_URI
+    serveruri: "https://www.open-theater.de/example-repo/services.json"
   },
 ];
 const DOM_SERVICELISTBUTTONS = document.querySelector('#serviceListButtons');
 const DOM_SERVICELIST = document.querySelector('#serviceList')
-
-
 
 
 //////////////////////////////////////////////////////////////////
@@ -76,7 +69,7 @@ async function showServicesToUser(serviceGroups) {
         </div>`);
       dom_serviceGroupDiv.appendChild(button);
       button.addEventListener('click', ()=> {
-        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:service}))
+        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:{service:service, serviceGroup:serviceGroup}}))
       })
     }
       
@@ -124,22 +117,22 @@ async function initUserFlow() {
 
   await showServicesToUser(serviceGroups);
   
-  // and wait for input from users:
+  // 4) choose CHANNEL from SERVICELIST
   document.addEventListener("serviceChosen",function(e) { 
     console.log(e);
     
     DOM_SERVICELIST.classList.add("hidden");
-    initService(e.detail) // NEXT
+    initService(e.detail.service, e.detail.serviceGroup.projectPath) // NEXT
 
   },{ once: true }) // close EventListener after being triggered
     
 }
 
 // 2. check if you need to update any data via provisioning API
-async function initService(service){
+async function initService(service,projectPath){
   console.log(`service ${service.label} was chosen by user and will be initiated`);
   
-  let fileList =  await openTheater.getProvisioningFilesFromService(service); // check provisioning API for new content
+  let fileList =  await openTheater.getProvisioningFilesFromService(service,projectPath); // check provisioning API for new content
   if (!fileList || !fileList.ok){
 
     alert(`could not connect to ${service.label}'s provisioning endpoint.`+
@@ -151,8 +144,9 @@ async function initService(service){
 
   console.log(fileList) // success // CONTINUE HERE
 
-  // do we force API wise or UI side to already have chosen a performance/piece/event? where will that be filtered? only in UI or also API wise (probably only UI side)
-  //const lastFileList = await openTheater.getFileListFromCache(service);
+  const lastFileList = await openTheater.getFileListFromCache(projectPath);
+  
+  console.log("cached fileList:", lastFileList);
   
   /*
   if (fileList.stringify() !== lastFileList){

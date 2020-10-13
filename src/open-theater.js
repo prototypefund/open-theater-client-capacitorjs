@@ -17,10 +17,11 @@ import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
 
+const MEDIA_BASE_PATH = "/media";
 
-let PLATFORM_IS_WEB =  (getPlatform() === "web");
-let PLATFORM_IS_ANDROID = (getPlatform() === "android");
-let PLATFORM_IS_IOS = (getPlatform() === "ios");
+const PLATFORM_IS_WEB =  (getPlatform() === "web");
+const PLATFORM_IS_ANDROID = (getPlatform() === "android");
+const PLATFORM_IS_IOS = (getPlatform() === "ios");
 
 /*
 const replaceURLStrings = [{
@@ -317,12 +318,18 @@ async function getProvisioningFilesFromService(service){
 }
 
 
-async function getFileListFromCache(service){
-    projectsAssetDir = path.join(MEDIA_BASE_PATH + service.serveruri);
-
+async function getFileListFromCache(projectPath){
+    let projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
+    console.log("getFileListFromCache reads path: ",projectsAssetDir);
+    
     return await readDir(projectsAssetDir);
 }
 
+
+async function initMediaRootDir(){
+  // CONTINUE HERE
+  // TODO: check if MEDIA_BASE_DIR exists, if not, create it
+}
 
 export { 
   helloWorld,
