@@ -75,6 +75,7 @@
 /// example response to getFileListFromService()
 
 {
+    fileDownloadUri: xxxxxxxx,
     files:[
         { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
         { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
