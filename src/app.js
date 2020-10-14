@@ -149,16 +149,14 @@ async function initService(service,projectPath){
     
     return initUserFlow(); // go back to start
   }
-  console.log("fileList:",fileList) // success // CONTINUE HERE
 
   const lastFileList = await openTheater.getFileListFromCache(projectPath);
   
-  console.log("cached fileList:", lastFileList);
   if (!lastFileList){
     console.log("dir of filelist does not exist. gonna have to download everything...");
     showUpdateOptionToUserOrUpdateAutomatically(fileList);
   }
-  else if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
+  else if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
     console.log(`directory of filelist exists but has deviations from filelist received 
     from provisioning server. gonna have to download everything or at least the changed files...`);
     showUpdateOptionToUserOrUpdateAutomatically(fileList);
