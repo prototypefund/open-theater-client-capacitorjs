@@ -6,4 +6,5 @@ module.exports = {
     filename: 'app.js',
     path: path.resolve(__dirname, 'www'),
   },
+  watch: true,
 };

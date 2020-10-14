@@ -1,0 +1,48 @@
+{
+    "serviceGroups": [
+        {
+            "projectPath":["MY INDEPENDENT EXAMPLE PIECE"],
+            "channelList":   
+            [
+                {
+                    "triggerUri": "wss://foo.bar",
+                    "provisioningUri": "http://localhost:8080/mockserver/my_independent_example_piece/DE_READ",
+                    "channelType": "text",
+                    "label": "DE Read"
+                },
+                {
+                    "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
+                    "COMMENT":"{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
+                    "provisioningUri": "http://localhost:8080/mockserver/my_independent_example_piece/DE_SIGN",
+                    "channelType": "video",
+                    "label": "DE Sign"
+                },
+                {
+                    "triggerUri": "https://foo.bar",
+                    "provisioningUri": "http://localhost:8080/mockserver/my_independent_example_piece/EN_SIGN",
+                    "channelType": "video",
+                    "label": "EN Sign"
+                }
+            ]
+        },
+        {
+            "projectPath":["Staatstheater Mannheim","Kammerspiele","Shakespears anderes Stück"],
+            "channelList":   
+            [
+                {
+                    "triggerUri": "wss://foo.bar/2",
+                    "provisioningUri": "http://localhost:8080/mockserver/staatstheater/kammerspiele/shakespeare/DE_UNTERTITEL",
+                    "channelType": "text",
+                    "label": "DE Untertitel"
+                },
+                {
+                    "triggerUri": "https://foo.bar/2",
+                    "provisioningUri": "http://localhost:8080/mockserver/staatstheater/kammerspiele/shakespeare/EN_SUBTITLES",
+                    "channelType": "video",
+                    "label": "EN Subtitles"
+                }
+            ]
+        }
+    ]
+      
+}

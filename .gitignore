@@ -7,3 +7,4 @@ ios/*
 !ios/App/App/App.entitlements
 android/*
 .gradle
+.eslintrc.js

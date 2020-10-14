@@ -13,9 +13,52 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
+import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
 
+const MEDIA_BASE_PATH = "/media";
+
+const PLATFORM_IS_WEB =  (getPlatform() === "web");
+const PLATFORM_IS_ANDROID = (getPlatform() === "android");
+const PLATFORM_IS_IOS = (getPlatform() === "ios");
+
+/*
+const replaceURLStrings = [{
+  "{{OPENTHEATER_APP_ID}}": openTheater.deviceId(),
+  "{{OPENTHEATER_API_VERSION}}": openTheater.version
+}]
+*/
+
+function modifyURLString(input){
+  
+  return input;
+  
+  // TODO: Kristian
+    /*
+    let triggerURL = new URL(services.triggerUri); 
+          
+    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below, maybe it can shorten this part?
+    if(triggerURL.protocol == "ws:") {}
+
+    if(triggerURL.protocol == "mqtt:") {}
+
+    if(triggerURL.protocol == "http:") {}
+    if(triggerURL.protocol == "https:") {}
+
+    triggerURL.searchParams.get('token');
+    triggerURL.search == "?token={{OPENTHEATER_APP_ID}}"
+
+    triggerURL.toString()
+    */
+
+  
+}
+
+
+function getPlatform(){
+  return Capacitor.getPlatform();
+}
 
 async function createDir(path){
     
@@ -96,8 +139,6 @@ async function deleteFile(path) {
 
 
 
-
-
 function helloWorld(){
     console.log("]OPEN THEATER[ Client is starting");
     console.log("we are running in",Capacitor.getPlatform(), "environment");
@@ -106,7 +147,7 @@ function helloWorld(){
 
 async function getWifiSsid(){
     
-    if(Capacitor.getPlatform() === "web")
+    if(PLATFORM_IS_WEB)
     {
       console.log("scanSSIDs is not available on this platform. You better involve the user here.");
       return false
@@ -132,35 +173,48 @@ function getBattery(){
  * then tries to connect to serveruri in whichever network is available
  * reports back
  */
-async function detectServer(config={ssid:"opentheater",serveruri:"http://192.168.3.189:8080/"}){
+async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]*/){
   
-  // TODO: this should be its own method/function, and not necessary be part of detectServer. 
-  if (Capacitor.getPlatform() === "android"){
+  for (let endpoint of config){
+
+    if (endpoint.ssid){ // if ssid given, we try to connect to a wifi
+
+      let wifinetwork = null;
+
+      if (!endpoint.pw){endpoint.pw = false} 
+
+      wifinetwork = await connectToSSID(endpoint.ssid,endpoint.pw);
       
-    let networksAvailable= await scanSSIDs();
-    let wifinetwork = null;
-    
-    for (let network of networksAvailable){
-
-      if (network.SSID && network.SSID.contains(config.ssid) ){
-
-        console.log(`found wifi network with ssid ${config.ssid}. will attempt to connect`);
-        wifinetwork = await connectToSSID(network.SSID,false); // false because opentheater networks should be open anyhow
-        break;
-
+      if (!wifinetwork){
+        console.log(`
+        could not connect to wifi network with ssid ${endpoint.ssid}. 
+        will try next repo server in config...`);        
+        continue;
       }
-
-    }
     
-    console.log(`connected to ${wifinetwork}`)
-  }
-
-
+    }
 
   // actual serverConnection/search:
+    console.log("fetching services from", endpoint.serveruri)
+    let services = await fetch(endpoint.serveruri).then(async (res)=>{
+      console.log("got response from",endpoint.serveruri)
+      return await res.json()}
+    ); // CONTINUE HERE: MQTT or Socket or REST?
+    console.log(services);
 
-  let services = await fetch(config.serveruri).json(); // CONTINUE HERE
-  console.log(services);
+    if (!services){
+      console.log(`
+        could not connect to server ${endpoint.serceruri}. 
+        will try next repo server in config...`);        
+        continue;
+    }
+
+    return services
+  }
+
+  console.log(`could not connect to any server listed in the repo list config`);
+  
+  return null
 
 }
 
@@ -186,10 +240,13 @@ async function updateFiles(config) { // config obj: { urls:[] , updateObj: null}
  */
 async function connectToSSID(ssid,wifipassword){
     let newssid = null;
-    if (Capacitor.getPlatform() === "ios") {
-        newssid = await WifiWizard2.iOSConnectNetwork(ssid,wifipassword).catch((err)=>{}); // Cordova Plugin
+    if (PLATFORM_IS_IOS) {
+        console.log("platform is IOS",PLATFORM_IS_IOS);
+        
+        newssid = await WifiWizard2.iOSConnectNetwork(ssid,wifipassword)
+        .catch((err)=>{console.log("error connceting to ssid",ssid,err)}); // Cordova Plugin
     }
-    else if (Capacitor.getPlatform() === "android") {
+    else if (PLATFORM_IS_ANDROID) {
         newssid = await WifiWizard2.connect(ssid,wifipassword).catch((err)=>{}); // Cordova Plugin
         if (newssid === "NETWORK_CONNECTION_COMPLETED"){
             newssid = ssid;
@@ -202,7 +259,7 @@ async function connectToSSID(ssid,wifipassword){
 }
 
 async function scanSSIDs(){ // possible with WifiWizard2 but only for Android devices. iOS blocks this in general.
-    if(Capacitor.getPlatform() !== "android")
+    if (!PLATFORM_IS_ANDROID)
     {
       console.log("scanSSIDs is not available on this platform. You better involve the user here.");
       return false
@@ -233,9 +290,80 @@ function setScreenBrightness(level)
     })   
 }
 
+function getServiceProtocol(service){
+  if (!service || typeof service !== "string"){
+    throw "getServiceProtocol requires parameter service (string)";
+  }
+
+  if (service.startsWith("ws://") || service.startsWith("wss://")){
+    return "websockets"
+  }
+  if (service.startsWith("http://") || service.startsWith("https://")){
+    return "http"
+  }
+  if (service.startsWith("mqtt://")){
+    return "mqtt"
+  }
+}
+
+// CONTINUE HERE
+async function getProvisioningFilesFromService(service){
+  if(!service.provisioningUri || typeof service.provisioningUri !== "string"){
+    throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
+  }
+
+  const listOfAssetFiles = await fetch(service.provisioningUri);
+
+  return listOfAssetFiles
+}
+
+
+async function getFileListFromCache(projectPath){
+    let projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
+    console.log("getFileListFromCache reads path: ",projectsAssetDir);
+    
+    return await readDir(projectsAssetDir);
+}
+
+/**
+ * initializes Open Theater MEDIA Base Directory on Client 
+ * either in apps filesystem or if webapp inside of the browsers storage
+ * 
+ * checks if MEDIA_BASE_PATH exists as directory, and creates it if not
+ */
+async function initMediaRootDir(){
+  const dir = await readDir(MEDIA_BASE_PATH);
+  if (dir !== null)
+  {
+    return true
+  }
+  else
+  {
+    const newdir = await createDir(MEDIA_BASE_PATH);
+    if (!newdir){throw `initMediaRootDir could not create MEDIA_BASE_PATH ${MEDIA_BASE_PATH}`}
+    return true
+  }
+}
 
 export { 
-  helloWorld, getWifiSsid, getBattery, detectServer, setScreenBrightness, connectToSSID, 
-  scanSSIDs/*updateFiles*/, createDir, readDir, fileWrite, readFile, deleteFile, getFileStat
+  helloWorld,
+  getPlatform, 
+  getWifiSsid, 
+  getBattery, 
+  detectServer, 
+  setScreenBrightness, 
+  connectToSSID, 
+  scanSSIDs,
+  readFile, 
+  createDir, 
+  readDir, 
+  fileWrite, 
+  deleteFile, 
+  getFileStat,
+  getServiceProtocol,
+  getProvisioningFilesFromService,
+  getFileListFromCache,
+  initMediaRootDir,
+  /*updateFiles,*/
 };
  

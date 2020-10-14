@@ -1,0 +1,17 @@
+[
+    {
+        "serviceUri": "xxxxxxx",
+        "serviceType": "text",
+        "label": "DE Read"
+    },
+    {
+        "serviceUri": "xxxxxxx",
+        "serviceType": "video",
+        "label": "DE Sign"
+    },
+    {
+        "serviceUri": "xxxxxxx",
+        "serviceType": "video",
+        "label": "EN Sign"
+    }
+]
