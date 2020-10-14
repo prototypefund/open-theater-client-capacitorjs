@@ -171,7 +171,6 @@ async function initService(service,projectPath){
   document.addEventListener("provisioningDone",function(e) { 
     console.log(e);
     
-    DOM_SERVICELIST.classList.add("hidden");
     enterTriggerMode(e.detail.service, e.detail.serviceGroup.projectPath) // NEXT
 
   },{ once: true })
