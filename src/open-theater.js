@@ -325,10 +325,24 @@ async function getFileListFromCache(projectPath){
     return await readDir(projectsAssetDir);
 }
 
-
+/**
+ * initializes Open Theater MEDIA Base Directory on Client 
+ * either in apps filesystem or if webapp inside of the browsers storage
+ * 
+ * checks if MEDIA_BASE_PATH exists as directory, and creates it if not
+ */
 async function initMediaRootDir(){
-  // CONTINUE HERE
-  // TODO: check if MEDIA_BASE_DIR exists, if not, create it
+  const dir = await readDir(MEDIA_BASE_PATH);
+  if (dir !== null)
+  {
+    return true
+  }
+  else
+  {
+    const newdir = await createDir(MEDIA_BASE_PATH);
+    if (!newdir){throw `initMediaRootDir could not create MEDIA_BASE_PATH ${MEDIA_BASE_PATH}`}
+    return true
+  }
 }
 
 export { 
@@ -349,6 +363,7 @@ export {
   getServiceProtocol,
   getProvisioningFilesFromService,
   getFileListFromCache,
+  initMediaRootDir,
   /*updateFiles,*/
 };
  
