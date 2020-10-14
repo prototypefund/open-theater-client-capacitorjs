@@ -97,6 +97,9 @@ initUserFlow();
 // 1. find servers & connect to one
 async function initUserFlow() {
 
+  // create Media Root Directory if does not exist yet
+  await openTheater.initMediaRootDir();
+
   DOM_SERVICELISTBUTTONS.innerHTML = "";
   DOM_SERVICELIST.classList.remove("hidden");
 
@@ -147,12 +150,15 @@ async function initService(service,projectPath){
   const lastFileList = await openTheater.getFileListFromCache(projectPath);
   
   console.log("cached fileList:", lastFileList);
-  
-  /*
-  if (fileList.stringify() !== lastFileList){
-    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+  if (!lastFileList){
+      console.log("dir of filelist does not exist. gonna have to download everything...");
   }
-  */
+  else if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
+    console.log(`directory of filelist exists but has deviations from filelist received 
+    from provisioning server. gonna have to download everything or at least the changed files...`);
+    //await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+  }
+  
 }
 
 // 3. wait for user inputs or start of incoming cues via trigger API

@@ -332,15 +332,17 @@ async function getFileListFromCache(projectPath){
  * checks if MEDIA_BASE_PATH exists as directory, and creates it if not
  */
 async function initMediaRootDir(){
-  const dir = await readDir(MEDIA_BASE_PATH);
+  const dir = await readDir(MEDIA_BASE_PATH)
   if (dir !== null)
   {
+    console.log("Open Theater media root directory was initialized: directory already exists"); 
     return true
   }
   else
   {
     const newdir = await createDir(MEDIA_BASE_PATH);
     if (!newdir){throw `initMediaRootDir could not create MEDIA_BASE_PATH ${MEDIA_BASE_PATH}`}
+    console.log("Open Theater media root directory was initialized: directory was created"); 
     return true
   }
 }
