@@ -75,7 +75,6 @@
 /// example response to getFileListFromService()
 
 {
-    assetDirectory: "houseOrFestival/projectTitle/"
     files:[
         { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
         { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },

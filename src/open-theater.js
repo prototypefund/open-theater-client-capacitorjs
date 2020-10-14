@@ -312,12 +312,19 @@ async function getProvisioningFilesFromService(service){
     throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
   }
 
-  const listOfAssetFiles = await fetch(service.provisioningUri);
-
+  const listOfAssetFilesResponse = await fetch(service.provisioningUri);
+  if (!listOfAssetFilesResponse.ok){
+    throw "getProvisioningFilesFromService encountered an error communicating with provisioning server"
+  }
+  const listOfAssetFiles = await listOfAssetFilesResponse.json()
+  .catch((err)=>{ throw {message:"getProvisioningFilesFromService got falsy response from provisioning server",error:err}});
+  console.log("listOfAssetFiles:",listOfAssetFiles);
+  
   return listOfAssetFiles
 }
 
 
+// TODO: return fileList from Cache in the same structure as we expect it from the provising servers
 async function getFileListFromCache(projectPath){
     let projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
     console.log("getFileListFromCache reads path: ",projectsAssetDir);
