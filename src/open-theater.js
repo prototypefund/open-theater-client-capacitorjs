@@ -199,7 +199,7 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
     let services = await fetch(endpoint.serveruri).then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
-    ); // CONTINUE HERE: MQTT or Socket or REST?
+    );
     console.log(services);
 
     if (!services){
@@ -325,11 +325,28 @@ async function getProvisioningFilesFromService(service){
 
 
 // TODO: return fileList from Cache in the same structure as we expect it from the provising servers
+
 async function getFileListFromCache(projectPath){
-    let projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
-    console.log("getFileListFromCache reads path: ",projectsAssetDir);
+    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
     
-    return await readDir(projectsAssetDir);
+    const fileList = await readDir(projectsAssetDir)
+    .catch((err)=>{throw "getFileListFromCache could not find project Dir"})
+
+    const fileListFormatted = await Promise.all(
+      fileList.files.map(async (filename) =>{
+        const filestats = await getFileStat(path.join(projectsAssetDir,filename));
+        const lastmodified = filestats.mtime;
+        const filesize = filestats.size;
+
+        return {filepath:filename, filesize: filesize, lastmodified: lastmodified}
+      })
+    )
+
+    const output = {
+      files: fileListFormatted
+    }
+
+    return output
 }
 
 /**

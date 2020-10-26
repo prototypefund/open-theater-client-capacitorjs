@@ -88,7 +88,7 @@ function htmlToElem(html) {
 async function showUpdateOptionToUserOrUpdateAutomatically(fileList){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",fileList);
 
-  return true
+  //return true
 }
 
 window.openTheater = openTheater;
@@ -144,43 +144,47 @@ async function initService(service,projectPath){
   if (!fileList){
 
     alert(`could not connect to ${service.label}'s provisioning endpoint.`+
-    "Please check your Network connection and then press OK\n"+
+    "Please check your network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
     
     return initUserFlow(); // go back to start
   }
-
-  const lastFileList = await openTheater.getFileListFromCache(projectPath);
   
-  if (!lastFileList){
-    console.log("dir of filelist does not exist. gonna have to download everything...");
-    showUpdateOptionToUserOrUpdateAutomatically(fileList);
-  }
-  else if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
-    console.log(`directory of filelist exists but has deviations from filelist received 
-    from provisioning server. gonna have to download everything or at least the changed files...`);
+  const lastFileList = await openTheater.getFileListFromCache(projectPath).catch(async (err)=>{
+    console.log("dir of filelist does not exist. gonna have to download everything...",err);
+    return
+    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+  })
+
+  console.log("lastFileList:",JSON.stringify(lastFileList),"fileList:", JSON.stringify(fileList), (JSON.stringify(fileList) === JSON.stringify(lastFileList)) );
+  
+
+  if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
+    console.log(`directory of filelist exists but has deviations from filelist received `+
+    `from provisioning server. gonna have to download everything or at least the changed files...`);
+    return
     showUpdateOptionToUserOrUpdateAutomatically(fileList);
   }
   else
   {
     console.log("directory of filelist exists and did not change. ready to trigger now");
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{service:service}}))
+    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
   }
 
 
   document.addEventListener("provisioningDone",function(e) { 
     console.log(e);
     
-    enterTriggerMode(e.detail.service, e.detail.serviceGroup.projectPath) // NEXT
+    enterTriggerMode(e.detail.chosenService, e.detail.serviceGroup.projectPath) // NEXT
 
   },{ once: true })
   
 }
 
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode()
+async function enterTriggerMode(service, projectPath)
 {
-
+  
 }
 
 ////// END MAIN FLOW //////////////////

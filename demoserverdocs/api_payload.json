@@ -1,0 +1,52 @@
+
+
+// city_walk.ejs (Renderer example)
+
+<div>
+    <img src="<%= img_url %>" style="color: <%= img_color %>" />
+    <div id="captions"><%= img_captions %></div>
+</div>
+
+
+
+
+// komplex:
+
+{
+    "image_captions_DE": {
+        "content":"ich bin ein Text in Deutsch",
+        "html":"<span style='color:red'>ich bin ein Text in Deutsch</span>",
+        "valid_until": 1234567890
+    },
+    "image": {
+        "image_url":"https://foo.bar/path/resource.ext",
+        "img_color":"red"
+    },
+    "meta":{
+        "renderMap":{
+            "image": {"renderer":"/assets/renderercity_walk.ejs", "type":"ejs"}
+        }
+    }
+}
+
+
+// minimal:
+{
+    "DE":{
+        "content":"ich bin ein Text in Deutsch",
+    }
+}
+
+
+// TEXT STRING
+<img src="<%= img_url %>" />
+
+
+// TEXT STRING
+<img src="<%= img_url %>" style="color: <%= color %>" />
+
+
+// HTML
+img_tag = '<img src="bla" style="opacity:.5" />'
+
+<%- img_tag %>

@@ -18,10 +18,11 @@
 // SERVICELIST:
 
 {
-    "serviceGroups": [
+    "serviceGroups": [        
         {
-            "projectPath":["MY INDEPENDENT EXAMPLE PIECE"],
-            "channelList":   
+            "projectPath":"MY_INDEPENDENT_EXAMPLE_PIECE",
+            "projectLabel":"Anderes Stück",
+            "channelList":
             [
                 {
                     "triggerUri": "wss://foo.bar",
@@ -45,20 +46,21 @@
             ]
         },
         {
-            "projectPath":["FREIES THEATER FESTIVAL Mannheim","Kammerspiele","Shakespears anderes Stück"],
-            "channelList":   
+            "projectPath":"FREIES_THEATER_FESTIVAL_Mannheim/Kammerspiele/Shakespears_anderes_Stück",
+            "projectLabel":"Anderes Stück",
+            "channelList":  
             [
                 {
                     "triggerUri": "wss://foo.bar/2",
                     "provisioningUri": "xxxxxxx",
                     "channelType": "text",
-                    "label": "DE Untertitel"
+                    "label": "Kammerspiele DE Untertitel" // styling allowed
                 },
                 {
                     "triggerUri": "https://foo.bar/2",
                     "provisioningUri": "xxxxxxx",
                     "channelType": "video",
-                    "label": "EN Subtitles"
+                    "label": "Kammerspiele EN Subtitles"
                 }
             ]
         }
@@ -75,11 +77,11 @@
 /// example response to getFileListFromService()
 
 {
-    fileDownloadUri: xxxxxxxx,
-    files:[
-        { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
-        { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
-        { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
-        { filename: xxxxx, filesize: yyyy, lastmodified: ooooooo },
+    assetDirectory: "houseOrFestival/projectTitle/" // optional or mandatory?
+    "files":[
+        { "filepath": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
+        { "filepath": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
+        { "filepath": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
+        { "filepath": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" }
     ]
 }

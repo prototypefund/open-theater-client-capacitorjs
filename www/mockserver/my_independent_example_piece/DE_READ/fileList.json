@@ -1,9 +1,6 @@
 {
-    "fileDownloadUri": "xxxxxxxx",
     "files":[
-        { "filename": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
-        { "filename": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
-        { "filename": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" },
-        { "filename": "xxxxx", "filesize": "yyyy", "lastmodified": "ooooooo" }
+        { "filepath": "1.mov", "filesize": 12, "lastmodified": 1603717814163 },
+        { "filepath": "2.mov", "filesize": 64, "lastmodified": 1603717835595 }
     ]
 }
