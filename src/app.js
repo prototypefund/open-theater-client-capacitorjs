@@ -130,17 +130,17 @@ async function initUserFlow() {
     console.log(e);
     
     DOM_SERVICELIST.classList.add("hidden");
-    initService(e.detail.service, e.detail.serviceGroup.projectPath) // NEXT
+    initService(e.detail.service, e.detail.serviceGroup) // NEXT
 
   },{ once: true }) // close EventListener after being triggered
     
 }
 
 // 2. check if you need to update any data via provisioning API
-async function initService(service,projectPath){
+async function initService(service,serviceGroup){
   console.log(`service ${service.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromService(service,projectPath); // check provisioning API for new content
+  const fileList =  await openTheater.getProvisioningFilesFromService(service,serviceGroup.projectPath); // check provisioning API for new content
   if (!fileList){
 
     alert(`could not connect to ${service.label}'s provisioning endpoint.`+
@@ -150,20 +150,18 @@ async function initService(service,projectPath){
     return initUserFlow(); // go back to start
   }
   
-  const lastFileList = await openTheater.getFileListFromCache(projectPath).catch(async (err)=>{
+  const lastFileList = await openTheater.getFileListFromCache(serviceGroup.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
     return
-    await showUpdateOptionToUserOrUpdateAutomatically(fileList);
+    await showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
   })
-
-  console.log("lastFileList:",JSON.stringify(lastFileList),"fileList:", JSON.stringify(fileList), (JSON.stringify(fileList) === JSON.stringify(lastFileList)) );
-  
 
   if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
     console.log(`directory of filelist exists but has deviations from filelist received `+
-    `from provisioning server. gonna have to download everything or at least the changed files...`);
+    `from provisioning server. gonna have to download everything or at least the changed files...`,
+    lastFileList, fileList);
     return
-    showUpdateOptionToUserOrUpdateAutomatically(fileList);
+    showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
   }
   else
   {
@@ -181,6 +179,7 @@ async function initService(service,projectPath){
   
 }
 
+// CONTINUE HERE
 // 3. wait for user inputs or start of incoming cues via trigger API
 async function enterTriggerMode(service, projectPath)
 {
