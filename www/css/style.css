@@ -5,3 +5,18 @@
 .serviceGroup h5{
     color: #004d40 
 }
+
+.btn-provisioning{
+    width: 80%;
+}
+
+.readyToTrigger{
+    background-color: green !important;
+}
+
+.readyToTrigger::after{
+    content: "READY";
+    font-size: 0.6em;
+    position: absolute;
+    right: 10px;
+}

@@ -68,13 +68,14 @@ async function showServicesToUser(serviceGroups) {
       // create a button for each CHANNEL inside the serviceGroups CHANNELLIST:
       const button = htmlToElem(
         `<div style="margin:5px">
-          <button class="btn-large waves-effect waves-light">
+          <button id="${service.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
             ${service.label}
           </button>
         </div>`);
       dom_serviceGroupDiv.appendChild(button);
-      button.addEventListener('click', ()=> {
-        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:{service:service, serviceGroup:serviceGroup}}))
+      button.addEventListener('click', function handler() {
+        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:{service:service, serviceGroup:serviceGroup}}));
+        this.removeEventListener('click', handler);
       })
     }
       
@@ -90,14 +91,34 @@ function htmlToElem(html) {
   return temp.content.firstChild;
 }
 
-async function showUpdateOptionToUserOrUpdateAutomatically(fileList){
-  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",fileList);
+async function showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service){
+  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",service.provisioningUri);
+
+
+  // demo code only atm
+  let progressbar = bar(service.provisioningUri);
+  
+  let progress = 0;
+  let thisinterval = setInterval(()=>{
+    console.log(progress+"%");
+    if (progress >= 100){
+      clearInterval(thisinterval);
+      console.log("download finished");
+      progressbar.bar.remove();
+      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
+    }
+    else{
+      progress = progress+Math.random()*10;
+      progressbar.set(progress)
+    }
+  },50)
+  
+    
 
   //return true
 }
 
 window.openTheater = openTheater;
-
 
 /////////////////////////////////////
 ///////////// MAIN FLOW /////////////
@@ -130,14 +151,16 @@ async function initUserFlow() {
 
   await showServicesToUser(serviceGroups);
   
+  console.log("waiting for user input (to choose projects to provision and prepare)");
+
   // 4) choose CHANNEL from SERVICELIST
   document.addEventListener("serviceChosen",function(e) { 
     console.log(e);
     
-    DOM_SERVICELIST.classList.add("hidden");
+    //DOM_SERVICELIST.classList.add("hidden");
     initService(e.detail.service, e.detail.serviceGroup) // NEXT
 
-  },{ once: true }) // close EventListener after being triggered
+  },{ once: false }) // dont close EventListener after being triggered in case more than one are chosen
     
 }
 
@@ -157,37 +180,52 @@ async function initService(service,serviceGroup){
   
   const lastFileList = await openTheater.getFileListFromCache(serviceGroup.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
-    return
-    await showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service); // TODO: philip
+    // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   })
 
-  if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
+  if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return
-    showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service); // TODO: philip
+    // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   }
   else
   {
     console.log("directory of filelist exists and did not change. ready to trigger now");
+    console.log("will dispatch CustomEvent provisiongDone now");
+    
     document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
   }
-
-
-  document.addEventListener("provisioningDone",function(e) { 
-    console.log(e);
-    
-    enterTriggerMode(e.detail.chosenService, e.detail.serviceGroup.projectPath) // NEXT
-
-  },{ once: true })
   
 }
+
+document.addEventListener("provisioningDone",function(e) { 
+  console.log("provisioningDone eventListener triggered:",e);
+  
+  activateTriggerModeForServiceButton(e.detail); 
+
+  //enterTriggerMode(e.detail.chosenService, e.detail.serviceGroup.projectPath) // NEXT
+
+},{ once: false }) // once per service
+
+
+async function activateTriggerModeForServiceButton(detail){
+  console.log("activateTriggerModeForServiceButton",detail);
+  let button = document.getElementById(detail.chosenService.provisioningUri);
+  button.classList.add("readyToTrigger");
+  button.addEventListener("click",()=>{
+    enterTriggerMode(detail.chosenService,detail.serviceGroup.projectPath)
+  })
+}
+
 
 // CONTINUE HERE
 // 3. wait for user inputs or start of incoming cues via trigger API
 async function enterTriggerMode(service, projectPath)
 {
+  console.log("enterTriggerMode", service, projectPath);
   
 }
 
