@@ -1,24 +1,35 @@
 
 /// possible config for detectServer()
 
-[
+{
+    "repos":[
     {"ssid": "mythaternetwork", "serveruri": "myprivatelocalserverURI"},
     {"ssid": "mythaternetwork", "serveruri": "SERVER_URI"},
     {"serveruri": "SERVER_URI"},
     {"ssid": "mythaternetwork", "serveruri": "SERVER_URI"},
     // {file:./APP_CONFIG/myconfig.json}
-]
-
+    ]
+}
 
 
 
 // example responses to detectServer()
 
 
-// SERVICELIST:
+Example productionList:
+
+   
+
+
+Example projectList:
+
+
+
+
 
 {
-    "serviceGroups": [        
+
+ "projects": [
         {
             "projectPath":"MY_INDEPENDENT_EXAMPLE_PIECE",
             "projectLabel":"Anderes Stück",
@@ -32,7 +43,6 @@
                 },
                 {
                     "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
-                    "COMMENT":"{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
                     "provisioningUri": "xxxxxxx",
                     "channelType": "video",
                     "label": "DE Sign"
@@ -48,7 +58,7 @@
         {
             "projectPath":"FREIES_THEATER_FESTIVAL_Mannheim/Kammerspiele/Shakespears_anderes_Stück",
             "projectLabel":"Anderes Stück",
-            "channelList":  
+            "channelList":
             [
                 {
                     "triggerUri": "wss://foo.bar/2",
@@ -65,9 +75,7 @@
             ]
         }
     ]
-      
 }
-
 
 
 

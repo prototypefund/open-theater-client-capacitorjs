@@ -3,6 +3,11 @@ the actual app, handling open-theater-api via open-theater.js as well as
 all the UI things and other stuff that you might to customize that has 
 nothing to do with the API nor the runtime environment of this app:
 */
+
+// TODO:
+//    - correct all 
+//    - https://www.npmjs.com/package/fetch-progress
+
 import * as openTheater from "./open-theater.js";
 
 const TESTCONFIG = [  // REPOLIST
