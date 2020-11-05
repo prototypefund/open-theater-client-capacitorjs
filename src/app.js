@@ -105,7 +105,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
       clearInterval(thisinterval);
       console.log("download finished");
       //progressbar.bar.remove();
-      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:chosenChannel}}))
+      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
     }
     else{
       progress = progress+1;
