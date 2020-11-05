@@ -104,7 +104,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
   let progress = 0;
 
   const self = this;
-  fetch()
+  fetch("https://images.unsplash.com/photo-1514832510016-108f38c20162?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=dbb79afb2cb593a13ea63e3f4b393f95&auto=format")
   .then(
     fetchProgress({
       // implement onProgress method
