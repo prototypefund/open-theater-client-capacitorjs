@@ -41,40 +41,40 @@ async function loadProjectListFileIfExists() {
   }) // Placeholder
 }
 
-async function showProjectsToUser(channelLists) {
-  console.log("showProjectsToUser got:",channelLists);
+async function showProjectsToUser(projects) {
+  console.log("showProjectsToUser got:",projects);
       
-  if (channelLists.length < 1) {return null}
+  if (projects.length < 1) {return null}
 
   // document.querySelector("#projectList")// show ProjectList
 
-  for (const channelList of channelLists) {
-    console.log("channelList",channelList);
+  for (const project of projects) {
+    console.log("channelList",project);
 
     // create channelList DIV
-    const channelListTitle = channelList.projectPath.join(":<br>");
-    const dom_channelListDiv = htmlToElem(
-      `<div class="channelList">
+    const projectTitle = project.projectPath.join(":<br>");
+    const dom_projectDiv = htmlToElem(
+      `<div class="project">
         <hr>  
-        <h5>${channelListTitle}</h5>
+        <h5>${projectTitle}</h5>
       </div>
       `
     );
-    DOM_PROJECTLISTBUTTONS.appendChild(dom_channelListDiv);
+    DOM_PROJECTLISTBUTTONS.appendChild(dom_projectDiv);
 
-    for (const project of channelList.channelList){
-      console.log(project);
+    for (const channel of project.channelList){
+      console.log(channel);
       
       // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
         `<div style="margin:5px">
-          <button id="${project.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
-            ${project.label}
+          <button id="${channel.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
+            ${channel.label}
           </button>
         </div>`);
-      dom_channelListDiv.appendChild(button);
+      dom_projectDiv.appendChild(button);
       button.addEventListener('click', function handler() {
-        document.dispatchEvent(new CustomEvent('projectChosen', {detail:{project:project, channelList:channelList}}));
+        document.dispatchEvent(new CustomEvent('channelChosen', {detail:{project:project, channel:channel}}));
         this.removeEventListener('click', handler);
       })
     }
@@ -91,12 +91,12 @@ function htmlToElem(html) {
   return temp.content.firstChild;
 }
 
-async function showUpdateOptionToUserOrUpdateAutomatically(channelList,project){
-  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",project.provisioningUri);
+async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
+  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
 
   // demo code only atm
-  let progressbar = bar(project.provisioningUri);
+  let progressbar = bar(channel.provisioningUri);
   
   let progress = 0;
   let thisinterval = setInterval(()=>{
@@ -105,7 +105,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(channelList,project){
       clearInterval(thisinterval);
       console.log("download finished");
       //progressbar.bar.remove();
-      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{channelList: channelList, chosenProject:project}}))
+      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:chosenChannel}}))
     }
     else{
       progress = progress+1;
@@ -154,33 +154,33 @@ async function initUserFlow() {
   console.log("waiting for user input (to choose projects to provision and prepare)");
 
   // 4) choose CHANNEL from PROJECTLIST
-  document.addEventListener("projectChosen",function(e) { 
+  document.addEventListener("channelChosen",function(e) { 
     console.log(e);
     
     //DOM_PROJECTLIST.classList.add("hidden");
-    initProject(e.detail.project, e.detail.channelList) // NEXT
+    initChannel(e.detail.project, e.detail.channel) // NEXT
 
   },{ once: false }) // dont close EventListener after being triggered in case more than one are chosen
     
 }
 
 // 2. check if you need to update any data via provisioning API
-async function initProject(project,channelList){
-  console.log(`project ${project.label} was chosen by user and will be initiated`);
+async function initChannel(project,channel){
+  console.log(`channel ${channel.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromProject(project,channelList.projectPath); // check provisioning API for new content
+  const fileList =  await openTheater.getProvisioningFilesFromProject(channel,project.projectPath); // check provisioning API for new content
   if (!fileList){
 
-    alert(`could not connect to ${project.label}'s provisioning endpoint.`+
+    alert(`could not connect to ${channel.label}'s provisioning endpoint.`+
     "Please check your network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
     
     return initUserFlow(); // go back to start
   }
   
-  const lastFileList = await openTheater.getFileListFromCache(channelList.projectPath).catch(async (err)=>{
+  const lastFileList = await openTheater.getFileListFromCache(project.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
-    return showUpdateOptionToUserOrUpdateAutomatically(channelList,project); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(project,channel); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   })
 
@@ -188,7 +188,7 @@ async function initProject(project,channelList){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return showUpdateOptionToUserOrUpdateAutomatically(channelList,project); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(project,channel); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   }
   else
@@ -196,7 +196,7 @@ async function initProject(project,channelList){
     console.log("directory of filelist exists and did not change. ready to trigger now");
     console.log("will dispatch CustomEvent provisiongDone now");
     
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{channelList: channelList, chosenProject:project}}))
+    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   }
   
 }
@@ -213,10 +213,10 @@ document.addEventListener("provisioningDone",function(e) {
 
 async function activateTriggerModeForProjectButton(detail){
   console.log("activateTriggerModeForProjectButton",detail);
-  let button = document.getElementById(detail.chosenProject.provisioningUri);
+  let button = document.getElementById(detail.chosenChannel.provisioningUri);
   button.classList.add("readyToTrigger");
   button.addEventListener("click",()=>{
-    enterTriggerMode(detail.chosenProject,detail.channelList.projectPath)
+    enterTriggerMode(detail.chosenChannel,detail.project.projectPath)
   })
 }
 
