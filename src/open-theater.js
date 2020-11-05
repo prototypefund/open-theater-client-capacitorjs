@@ -36,7 +36,7 @@ function modifyURLString(input){
   
   // TODO: Kristian
     /*
-    let triggerURL = new URL(services.triggerUri); 
+    let triggerURL = new URL(projects.triggerUri); 
           
     if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below, maybe it can shorten this part?
     if(triggerURL.protocol == "ws:") {}
@@ -195,21 +195,21 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
     }
 
   // actual serverConnection/search:
-    console.log("fetching services from", endpoint.serveruri)
-    let services = await fetch(endpoint.serveruri).then(async (res)=>{
+    console.log("fetching projects from", endpoint.serveruri)
+    let projects = await fetch(endpoint.serveruri).then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
     );
-    console.log(services);
+    console.log(projects);
 
-    if (!services){
+    if (!projects){
       console.log(`
-        could not connect to server ${endpoint.serceruri}. 
+        could not connect to server ${endpoint.serveruri}. 
         will try next repo server in config...`);        
         continue;
     }
 
-    return services
+    return projects
   }
 
   console.log(`could not connect to any server listed in the repo list config`);
@@ -307,17 +307,17 @@ function getServiceProtocol(service){
 }
 
 // CONTINUE HERE
-async function getProvisioningFilesFromService(service){
-  if(!service.provisioningUri || typeof service.provisioningUri !== "string"){
-    throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
+async function getProvisioningFilesFromProject(project){
+  if(!project.provisioningUri || typeof project.provisioningUri !== "string"){
+    throw "getProvisioningFilesFromProject requires Project obj to contain provisioningUri (string)"
   }
 
-  const listOfAssetFilesResponse = await fetch(service.provisioningUri);
+  const listOfAssetFilesResponse = await fetch(project.provisioningUri);
   if (!listOfAssetFilesResponse.ok){
-    throw "getProvisioningFilesFromService encountered an error communicating with provisioning server"
+    throw "getProvisioningFilesFromProject encountered an error communicating with provisioning server"
   }
   const listOfAssetFiles = await listOfAssetFilesResponse.json()
-  .catch((err)=>{ throw {message:"getProvisioningFilesFromService got falsy response from provisioning server",error:err}});
+  .catch((err)=>{ throw {message:"getProvisioningFilesFromProject got falsy response from provisioning server",error:err}});
   console.log("listOfAssetFiles:",listOfAssetFiles);
   
   return listOfAssetFiles
@@ -387,7 +387,7 @@ export {
   deleteFile, 
   getFileStat,
   getServiceProtocol,
-  getProvisioningFilesFromService,
+  getProvisioningFilesFromProject,
   getFileListFromCache,
   initMediaRootDir,
   /*updateFiles,*/

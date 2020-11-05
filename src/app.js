@@ -19,8 +19,8 @@ const TESTCONFIG = [  // REPOLIST
     serveruri: "https://www.open-theater.de/example-repo/services.json"
   },
 ];
-const DOM_SERVICELISTBUTTONS = document.querySelector('#serviceListButtons');
-const DOM_SERVICELIST = document.querySelector('#serviceList')
+const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
+const DOM_PROJECTLIST = document.querySelector('#projectList')
 
 
 //////////////////////////////////////////////////////////////////
@@ -35,46 +35,46 @@ openTheater.getWifiSsid().then((res)=>{
 });
 
 
-async function loadServiceListFileIfExists() {
+async function loadProjectListFileIfExists() {
   return new Promise((resolve,reject)=>{
     reject(null)
   }) // Placeholder
 }
 
-async function showServicesToUser(serviceGroups) {
-  console.log("showServicesToUser got:",serviceGroups);
+async function showProjectsToUser(channelLists) {
+  console.log("showProjectsToUser got:",channelLists);
       
-  if (serviceGroups.length < 1) {return null}
+  if (channelLists.length < 1) {return null}
 
-  // document.querySelector("#serviceList")// show ServiceList
+  // document.querySelector("#projectList")// show ProjectList
 
-  for (const serviceGroup of serviceGroups) {
-    console.log("serviceGroup",serviceGroup);
+  for (const channelList of channelLists) {
+    console.log("channelList",channelList);
 
-    // create serviceGroup DIV
-    const serviceGroupTitle = serviceGroup.projectPath.join(":<br>");
-    const dom_serviceGroupDiv = htmlToElem(
-      `<div class="serviceGroup">
+    // create channelList DIV
+    const channelListTitle = channelList.projectPath.join(":<br>");
+    const dom_channelListDiv = htmlToElem(
+      `<div class="channelList">
         <hr>  
-        <h5>${serviceGroupTitle}</h5>
+        <h5>${channelListTitle}</h5>
       </div>
       `
     );
-    DOM_SERVICELISTBUTTONS.appendChild(dom_serviceGroupDiv);
+    DOM_PROJECTLISTBUTTONS.appendChild(dom_channelListDiv);
 
-    for (const service of serviceGroup.channelList){
-      console.log(service);
+    for (const project of channelList.channelList){
+      console.log(project);
       
-      // create a button for each CHANNEL inside the serviceGroups CHANNELLIST:
+      // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
         `<div style="margin:5px">
-          <button id="${service.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
-            ${service.label}
+          <button id="${project.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
+            ${project.label}
           </button>
         </div>`);
-      dom_serviceGroupDiv.appendChild(button);
+      dom_channelListDiv.appendChild(button);
       button.addEventListener('click', function handler() {
-        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:{service:service, serviceGroup:serviceGroup}}));
+        document.dispatchEvent(new CustomEvent('projectChosen', {detail:{project:project, channelList:channelList}}));
         this.removeEventListener('click', handler);
       })
     }
@@ -91,12 +91,12 @@ function htmlToElem(html) {
   return temp.content.firstChild;
 }
 
-async function showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service){
-  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",service.provisioningUri);
+async function showUpdateOptionToUserOrUpdateAutomatically(channelList,project){
+  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",project.provisioningUri);
 
 
   // demo code only atm
-  let progressbar = bar(service.provisioningUri);
+  let progressbar = bar(project.provisioningUri);
   
   let progress = 0;
   let thisinterval = setInterval(()=>{
@@ -104,11 +104,11 @@ async function showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service)
     if (progress >= 100){
       clearInterval(thisinterval);
       console.log("download finished");
-      progressbar.bar.remove();
-      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
+      //progressbar.bar.remove();
+      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{channelList: channelList, chosenProject:project}}))
     }
     else{
-      progress = progress+Math.random()*10;
+      progress = progress+1;
       progressbar.set(progress)
     }
   },50)
@@ -131,56 +131,56 @@ async function initUserFlow() {
   // create Media Root Directory if does not exist yet
   await openTheater.initMediaRootDir();
 
-  DOM_SERVICELISTBUTTONS.innerHTML = "";
-  DOM_SERVICELIST.classList.remove("hidden");
+  DOM_PROJECTLISTBUTTONS.innerHTML = "";
+  DOM_PROJECTLIST.classList.remove("hidden");
 
   // only for demo reference (how to ignore REPOs)
-  let serviceList = await loadServiceListFileIfExists().catch((err)=>{});
+  let projectList = await loadProjectListFileIfExists().catch((err)=>{});
 
-  // 1) Use REPOLIST (TESTCONFIG) to get SERVICELIST from one REPO:
-  if (!serviceList) { 
-  // 2) searches REPOLIST for SERVICELIST
-    serviceList = await openTheater.detectServer(TESTCONFIG) 
-    console.log(`found serviceList:`,serviceList);
+  // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
+  if (!projectList) { 
+  // 2) searches REPOLIST for PROJECTLIST
+    projectList = await openTheater.detectServer(TESTCONFIG) 
+    console.log(`found projectList:`,projectList);
   }
 
-  // 3) get SERVICEGROUPS from SERVICELIST
-  let serviceGroups = serviceList.serviceGroups;
+  // 3) get projects from PROJECTLIST
+  let projects = projectList.projects;
 
-  console.log("awaiting showServices with param", serviceGroups);
+  console.log("awaiting showProjects with param", projects);
 
-  await showServicesToUser(serviceGroups);
+  await showProjectsToUser(projects);
   
   console.log("waiting for user input (to choose projects to provision and prepare)");
 
-  // 4) choose CHANNEL from SERVICELIST
-  document.addEventListener("serviceChosen",function(e) { 
+  // 4) choose CHANNEL from PROJECTLIST
+  document.addEventListener("projectChosen",function(e) { 
     console.log(e);
     
-    //DOM_SERVICELIST.classList.add("hidden");
-    initService(e.detail.service, e.detail.serviceGroup) // NEXT
+    //DOM_PROJECTLIST.classList.add("hidden");
+    initProject(e.detail.project, e.detail.channelList) // NEXT
 
   },{ once: false }) // dont close EventListener after being triggered in case more than one are chosen
     
 }
 
 // 2. check if you need to update any data via provisioning API
-async function initService(service,serviceGroup){
-  console.log(`service ${service.label} was chosen by user and will be initiated`);
+async function initProject(project,channelList){
+  console.log(`project ${project.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromService(service,serviceGroup.projectPath); // check provisioning API for new content
+  const fileList =  await openTheater.getProvisioningFilesFromProject(project,channelList.projectPath); // check provisioning API for new content
   if (!fileList){
 
-    alert(`could not connect to ${service.label}'s provisioning endpoint.`+
+    alert(`could not connect to ${project.label}'s provisioning endpoint.`+
     "Please check your network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
     
     return initUserFlow(); // go back to start
   }
   
-  const lastFileList = await openTheater.getFileListFromCache(serviceGroup.projectPath).catch(async (err)=>{
+  const lastFileList = await openTheater.getFileListFromCache(channelList.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
-    return showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(channelList,project); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   })
 
@@ -188,7 +188,7 @@ async function initService(service,serviceGroup){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return showUpdateOptionToUserOrUpdateAutomatically(serviceGroup,service); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(channelList,project); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   }
   else
@@ -196,7 +196,7 @@ async function initService(service,serviceGroup){
     console.log("directory of filelist exists and did not change. ready to trigger now");
     console.log("will dispatch CustomEvent provisiongDone now");
     
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
+    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{channelList: channelList, chosenProject:project}}))
   }
   
 }
@@ -204,28 +204,28 @@ async function initService(service,serviceGroup){
 document.addEventListener("provisioningDone",function(e) { 
   console.log("provisioningDone eventListener triggered:",e);
   
-  activateTriggerModeForServiceButton(e.detail); 
+  activateTriggerModeForProjectButton(e.detail); 
 
-  //enterTriggerMode(e.detail.chosenService, e.detail.serviceGroup.projectPath) // NEXT
+  //enterTriggerMode(e.detail.chosenProject, e.detail.channelList.projectPath) // NEXT
 
-},{ once: false }) // once per service
+},{ once: false }) // once per project
 
 
-async function activateTriggerModeForServiceButton(detail){
-  console.log("activateTriggerModeForServiceButton",detail);
-  let button = document.getElementById(detail.chosenService.provisioningUri);
+async function activateTriggerModeForProjectButton(detail){
+  console.log("activateTriggerModeForProjectButton",detail);
+  let button = document.getElementById(detail.chosenProject.provisioningUri);
   button.classList.add("readyToTrigger");
   button.addEventListener("click",()=>{
-    enterTriggerMode(detail.chosenService,detail.serviceGroup.projectPath)
+    enterTriggerMode(detail.chosenProject,detail.channelList.projectPath)
   })
 }
 
 
 // CONTINUE HERE
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(service, projectPath)
+async function enterTriggerMode(project, projectPath)
 {
-  console.log("enterTriggerMode", service, projectPath);
+  console.log("enterTriggerMode", project, projectPath);
   
 }
 
