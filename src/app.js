@@ -5,10 +5,12 @@ nothing to do with the API nor the runtime environment of this app:
 */
 
 // TODO:
-//    - correct all 
 //    - https://www.npmjs.com/package/fetch-progress
+//    - hand data over to trigger api and show triggerMode UI
 
 import * as openTheater from "./open-theater.js";
+import fetchProgress from "fetch-progress";
+
 
 const TESTCONFIG = [  // REPOLIST
   {   /* ssid: "open.theater", 
@@ -95,16 +97,53 @@ async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
 
+  // CONTINUE HERE: 
+  // TODO: implement fetch-progress for downloading of assets and visualisation of that
+  
+  let progressbar = bar(channel.provisioningUri);
+  let progress = 0;
+
+  const self = this;
+  fetch()
+  .then(
+    fetchProgress({
+      // implement onProgress method
+      onProgress(progress) {
+        console.log({ progress });
+  
+        
+        if ({progress}.progress.remaining <= 0){
+          console.log("download finished");
+          progressbar.bar.remove();
+          document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+        }
+        else{
+          progressbar.set({progress}.progress.percentage)
+        }
+        
+        // A possible progress report you will get
+        // {
+        //    total: 3333,
+        //    transferred: 3333,
+        //    speed: 3333,
+        //    eta: 33,
+        //    percentage: 33
+        //    remaining: 3333,
+        // }
+      },
+    })
+  )
+  /*
   // demo code only atm
   let progressbar = bar(channel.provisioningUri);
   
   let progress = 0;
   let thisinterval = setInterval(()=>{
-    console.log(progress+"%");
+    //console.log(progress+"%");
     if (progress >= 100){
       clearInterval(thisinterval);
       console.log("download finished");
-      //progressbar.bar.remove();
+      progressbar.bar.remove();
       document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
     }
     else{
@@ -112,7 +151,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
       progressbar.set(progress)
     }
   },50)
-  
+  // end demo code */
     
 
   //return true
