@@ -9,8 +9,7 @@ nothing to do with the API nor the runtime environment of this app:
 //    - hand data over to trigger api and show triggerMode UI
 
 import * as openTheater from "./open-theater.js";
-import fetchProgress from "fetch-progress";
-
+import path from 'path-browserify';
 
 const TESTCONFIG = [  // REPOLIST
   {   /* ssid: "open.theater", 
@@ -93,46 +92,24 @@ function htmlToElem(html) {
   return temp.content.firstChild;
 }
 
-async function showUpdateOptionToUserOrUpdateAutomatically(project,channel){
+async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
 
   // CONTINUE HERE: 
-  // TODO: implement fetch-progress for downloading of assets and visualisation of that
-  
+  // TODO: implement fetch-progress only as file done and then multifile fetch-promise with counter
+
   let progressbar = bar(channel.provisioningUri);
   let progress = 0;
 
-  const self = this;
-  fetch("https://images.unsplash.com/photo-1514832510016-108f38c20162?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=dbb79afb2cb593a13ea63e3f4b393f95&auto=format")
-  .then(
-    fetchProgress({
-      // implement onProgress method
-      onProgress(progress) {
-        console.log({ progress });
+  console.log(`files to download for ${channel.label}`, fileList);
   
-        
-        if ({progress}.progress.remaining <= 0){
-          console.log("download finished");
-          progressbar.bar.remove();
-          document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
-        }
-        else{
-          progressbar.set({progress}.progress.percentage)
-        }
-        
-        // A possible progress report you will get
-        // {
-        //    total: 3333,
-        //    transferred: 3333,
-        //    speed: 3333,
-        //    eta: 33,
-        //    percentage: 33
-        //    remaining: 3333,
-        // }
-      },
-    })
-  )
+  for (const file of fileList.files){
+    
+    console.log("downloading ",path.join(channel.provisioningUri,file.filepath));
+    
+    //fetch(path.join(channel.provisioningUri,file.filepath))
+  }
   /*
   // demo code only atm
   let progressbar = bar(channel.provisioningUri);
@@ -219,7 +196,7 @@ async function initChannel(project,channel){
   
   const lastFileList = await openTheater.getFileListFromCache(project.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
-    return showUpdateOptionToUserOrUpdateAutomatically(project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   })
 
@@ -227,7 +204,7 @@ async function initChannel(project,channel){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return showUpdateOptionToUserOrUpdateAutomatically(project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   }
   else
