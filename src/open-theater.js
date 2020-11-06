@@ -13,9 +13,13 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
+window.FilesystemDirectory = FilesystemDirectory; // debug
+window.FilesystemEncoding = FilesystemEncoding;// debug
+
 import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
+window.Filesystem = Filesystem;// debug
 
 const MEDIA_BASE_PATH = "/media";
 
@@ -287,7 +291,7 @@ function setScreenBrightness(level)
             }
         );
 
-    })   
+    })
 }
 
 function getServiceProtocol(service){

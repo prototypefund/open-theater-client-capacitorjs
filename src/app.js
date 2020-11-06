@@ -129,6 +129,25 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     })
     .then((blob)=>{
       return openTheater.fileWrite(file.filepath,blob); // write to Disk / Cache // TODO: write to correct Project Subdir!!!!!!!! // Test if loadable again!!!
+/*
+// TODO: add this as helper into openTheater.toBase64
+// check if this is fast enough for video or if we have a problem with the loading behaviour here (toBase64 should take time even from disk no?)
+
+openTheater.readFile("/2.mp4").then((blob)=>{
+    var reader = new FileReader();
+     reader.readAsDataURL(blob.data); 
+     reader.onloadend = function() {
+         var base64data = reader.result;                
+         //console.log(base64data);
+        document.body.innerHTML = `
+<video src="${base64data}" autoplay controls>
+`
+     }
+})
+
+*/
+
+
     })
     fetchPromises.push(fetchProm);
   }
