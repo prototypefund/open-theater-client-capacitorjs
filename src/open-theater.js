@@ -312,7 +312,11 @@ async function getProvisioningFilesFromProject(project){
     throw "getProvisioningFilesFromProject requires Project obj to contain provisioningUri (string)"
   }
 
-  const listOfAssetFilesResponse = await fetch(project.provisioningUri);
+  let url = new URL("http://localhost:8080/mockserver/my_independent_example_piece/EN_SIGN/");
+  url.pathname = path.join(url.pathname,"fileList.json");
+  url = url.toString();
+
+  const listOfAssetFilesResponse = await fetch(url);
   if (!listOfAssetFilesResponse.ok){
     throw "getProvisioningFilesFromProject encountered an error communicating with provisioning server"
   }

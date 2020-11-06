@@ -8,3 +8,6 @@ ios/*
 android/*
 .gradle
 .eslintrc.js
+*.mp4
+*.mov
+*.mp3

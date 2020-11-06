@@ -56,7 +56,7 @@ async function showProjectsToUser(projects) {
     const projectTitle = project.projectPath.join(":<br>");
     const dom_projectDiv = htmlToElem(
       `<div class="project">
-        <hr>  
+        <hr>
         <h5>${projectTitle}</h5>
       </div>
       `
@@ -79,24 +79,26 @@ async function showProjectsToUser(projects) {
         this.removeEventListener('click', handler);
       })
     }
-      
+  
   }
-    
+
   return true
 }
 
 function htmlToElem(html) {
   let temp = document.createElement('template');
-  html = html.trim(); // Never return a space text node as a result
+  html = html.trim(); // Do not return a space in a text node
   temp.innerHTML = html;
   return temp.content.firstChild;
 }
+
+
 
 async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
 
-  // CONTINUE HERE: 
+  // CONTINUE HERE:
   // TODO: implement fetch-progress only as file done and then multifile fetch-promise with counter
 
   let progressbar = bar(channel.provisioningUri);
@@ -104,34 +106,55 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
 
   console.log(`files to download for ${channel.label}`, fileList);
   
+  let fetchPromises = [];
+
+  const progressPerFile = 100/fileList.files.length; // TODO: make fancier by using total bytes instead of num of files...
+
   for (const file of fileList.files){
     
-    console.log("downloading ",path.join(channel.provisioningUri,file.filepath));
+    const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
+
+    console.log("downloading ",newpath);
     
-    //fetch(path.join(channel.provisioningUri,file.filepath))
+    const fetchProm = fetch(newpath) // CONTINUE HERE: fix the weird double path issue (http:// instead of http:/)
+    .then((res)=>{
+      if (res.status === 200){
+        // add to progressbar
+        progress = progress + progressPerFile;
+        progressbar.set(progress);
+        // TODO: save to openTheater FileSystem / Asset Cache
+        return res.blob();
+      }
+      return res
+    })
+    .then((blob)=>{
+      return openTheater.fileWrite(file.filepath,blob); // write to Disk / Cache // TODO: write to correct Project Subdir!!!!!!!! // Test if loadable again!!!
+    })
+    fetchPromises.push(fetchProm);
   }
-  /*
-  // demo code only atm
-  let progressbar = bar(channel.provisioningUri);
-  
-  let progress = 0;
-  let thisinterval = setInterval(()=>{
-    //console.log(progress+"%");
-    if (progress >= 100){
-      clearInterval(thisinterval);
-      console.log("download finished");
-      progressbar.bar.remove();
-      document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
-    }
-    else{
-      progress = progress+1;
-      progressbar.set(progress)
-    }
-  },50)
-  // end demo code */
-    
+
+  Promise.all(fetchPromises)
+  .then((resArray)=>{
+    console.log("download attempts done",resArray); 
+    // TODO: check for NON 200 responses and react to failed Downloads
+
+    progressbar.bar.remove();
+    //document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+
+  })
 
   //return true
+}
+
+function mergeProvisioningUriWithfilepath(provisioningUri,filepath){
+  if (filepath.startsWith("http://") || filepath.startsWith("https://")){
+    return filepath // nothing needs to be merged. file has its own valid url
+  }
+  else{
+    let url = new URL(provisioningUri);
+    url.pathname = path.join(url.pathname,filepath);
+    return url.toString()
+  }
 }
 
 window.openTheater = openTheater;
