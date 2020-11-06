@@ -133,6 +133,9 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
 // TODO: add this as helper into openTheater.toBase64
 // check if this is fast enough for video or if we have a problem with the loading behaviour here (toBase64 should take time even from disk no?)
 
+// better possibly (at least for non-webapp: using Capacitor.convertFileSrc() as described in: https://capacitorjs.com/docs/basics/utilities#convertfilesrc)
+
+
 openTheater.readFile("/2.mp4").then((blob)=>{
     var reader = new FileReader();
      reader.readAsDataURL(blob.data); 
