@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx webpack; npx cap sync;",
+    "build": "npx webpack; npx cap sync; npx cap copy;",
     "dev": "npx webpack --watch --progress;"
   },
   "repository": {
@@ -27,6 +27,7 @@
     "@capacitor/cli": "^2.4.0",
     "@capacitor/core": "^2.4.0",
     "@capacitor/ios": "^2.4.0",
+    "capacitor-blob-writer": "^0.1.10",
     "cordova-plugin-brightness": "^0.2.0",
     "es6-promise-plugin": "^4.2.2",
     "eslint": "^7.10.0",

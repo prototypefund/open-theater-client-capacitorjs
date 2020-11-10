@@ -11,6 +11,7 @@ nothing to do with the API nor the runtime environment of this app:
 import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
 
+
 const TESTCONFIG = [  // REPOLIST
   {   /* ssid: "open.theater", 
         pw: "live1234" */
@@ -25,7 +26,7 @@ const DOM_PROJECTLIST = document.querySelector('#projectList')
 
 
 //////////////////////////////////////////////////////////////////
-
+ 
 
 console.log("loaded", openTheater);
 
@@ -130,11 +131,10 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     .then((blob)=>{
       return openTheater.fileWrite(file.filepath,blob); // write to Disk / Cache // TODO: write to correct Project Subdir!!!!!!!! // Test if loadable again!!!
 /*
-// TODO: add this as helper into openTheater.toBase64
+// TODO: add this as helper into openTheater.toBase64() and openTheater.toLocalFileUrl() for native
 // check if this is fast enough for video or if we have a problem with the loading behaviour here (toBase64 should take time even from disk no?)
 
 // better possibly (at least for non-webapp: using Capacitor.convertFileSrc() as described in: https://capacitorjs.com/docs/basics/utilities#convertfilesrc)
-
 
 openTheater.readFile("/2.mp4").then((blob)=>{
     var reader = new FileReader();
@@ -229,7 +229,7 @@ async function initUserFlow() {
 async function initChannel(project,channel){
   console.log(`channel ${channel.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromProject(channel,project.projectPath); // check provisioning API for new content
+  const fileList =  await openTheater.getProvisioningFilesFromProject(channel); // check provisioning API for new content
   if (!fileList){
 
     alert(`could not connect to ${channel.label}'s provisioning endpoint.`+

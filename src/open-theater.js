@@ -15,6 +15,10 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
 window.FilesystemDirectory = FilesystemDirectory; // debug
 window.FilesystemEncoding = FilesystemEncoding;// debug
+// you must use the module directly, rather than using `Plugins.BlobWriter`
+import { writeFile } from 'capacitor-blob-writer' // debug
+window.FilesystemDirectory = FilesystemDirectory; // debug
+window.writeFile = writeFile; // debug
 
 import path from 'path-browserify';
 
@@ -27,12 +31,58 @@ const PLATFORM_IS_WEB =  (getPlatform() === "web");
 const PLATFORM_IS_ANDROID = (getPlatform() === "android");
 const PLATFORM_IS_IOS = (getPlatform() === "ios");
 
-/*
-const replaceURLStrings = [{
-  "{{OPENTHEATER_APP_ID}}": openTheater.deviceId(),
-  "{{OPENTHEATER_API_VERSION}}": openTheater.version
-}]
+// CONTINUE HERE:
+/* 
+TODO: 
+- test on android 
+- test on pwa 
+- if works adapt into opentheater.helperfunctions as read and download
+- find fixes for loading times of videos (preloading in trigger might be needed to bridge this)
 */
+
+async function downloadVideo() {
+  // fetch a blob
+  const res = await fetch('http://192.168.178.20:8080/mockserver/my_independent_example_piece/EN_SIGN/1.mp4')
+  const blob = await res.blob()
+
+  const { uri } = await writeFile({
+    path: 'media/videos/funny.mp4',
+    directory: FilesystemDirectory.Data,
+
+    // data must be a Blob (creating a Blob which wraps other data types
+    // is trivial)
+    data: blob,
+
+    // create intermediate directories if they don't already exist
+    // default: false
+    recursive: true,
+
+    // fallback to Filesystem.writeFile instead of throwing an error
+    // (you may also specify a unary callback, which takes an Error and returns
+    // a boolean)
+    // default: true
+    fallback: (err) => {
+      logError(err)
+      return process.env.NODE_ENV === 'production'
+    }
+  })
+
+  const src = Capacitor.convertFileSrc(uri)
+
+  const video = document.createElement('video');
+  video.id = "myvideoplayer";
+  video.src = src;
+
+  video.setAttribute('playsinline', 'playsinline');
+  video.style="width:100%";
+  video.autoplay = true;
+  video.controls = false;
+
+
+  // watch the video offline!
+  document.body.appendChild(video);
+}
+window.downloadVideo = downloadVideo;
 
 function modifyURLString(input){
   
@@ -99,7 +149,7 @@ async function fileWrite(filepath, content) {
         path: filepath,
         data: content,
         directory: FilesystemDirectory.Documents,
-        encoding: FilesystemEncoding.UTF8
+        //encoding: FilesystemEncoding.UTF8
       })
       console.log('Wrote file', result);
       return result
@@ -311,12 +361,12 @@ function getServiceProtocol(service){
 }
 
 // CONTINUE HERE
-async function getProvisioningFilesFromProject(project){
-  if(!project.provisioningUri || typeof project.provisioningUri !== "string"){
+async function getProvisioningFilesFromProject(channel){
+  if(!channel.provisioningUri || typeof channel.provisioningUri !== "string"){
     throw "getProvisioningFilesFromProject requires Project obj to contain provisioningUri (string)"
   }
 
-  let url = new URL("http://localhost:8080/mockserver/my_independent_example_piece/EN_SIGN/");
+  let url = new URL(channel.provisioningUri);
   url.pathname = path.join(url.pathname,"fileList.json");
   url = url.toString();
 
@@ -399,5 +449,6 @@ export {
   getFileListFromCache,
   initMediaRootDir,
   /*updateFiles,*/
+  downloadVideo
 };
  
