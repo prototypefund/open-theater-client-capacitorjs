@@ -40,7 +40,8 @@ normally that should not be touched by you other than to change icons, splashscr
 `android/app/src/main/java/de/open_theater/client/MainActivity.java` contains some the bridge API between this webapp and the native android APIs.
 
 `android/app/src/main/AndroidManifest.xml` contains some references to network security configuration which furthermore is defined in
-`android/app/src/main/res/xml/network_security_config.xml` where inside all Cleartext (aka non TLS/SSL encrypted) network connections are whitelisted. In case you have a local testing fileserver you must add an entry. Otherwise `localhost` is allowed to be in cleartext for the <a href="https://github.com/diachedelic/capacitor-blob-writer">capacitor-blob-writer plugin</a>. for more information see the plugin's readme and <a href="https://github.com/diachedelic/capacitor-blob-writer/issues/20">this</a> issue.
+`android/app/src/main/res/xml/network_security_config.xml` where inside all cleartext (aka non TLS/SSL encrypted) network connections are whitelisted. In case you have a local testing fileserver you must add an entry. Otherwise `localhost` is allowed to be in cleartext for the <a href="https://github.com/diachedelic/capacitor-blob-writer">capacitor-blob-writer plugin</a>. for more information see the plugin's readme and <a href="https://github.com/diachedelic/capacitor-blob-writer/issues/20">this</a> issue.
+More information about netword_security_config on the <a href="https://developer.android.com/training/articles/security-config">officical android documentation</a>
 
 ### Webpack
 

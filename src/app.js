@@ -117,7 +117,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
 
     console.log("downloading ",newpath);
     
-    const fetchProm = fetch(newpath) // CONTINUE HERE: fix the weird double path issue (http:// instead of http:/)
+    const fetchProm = fetch(newpath)
     .then((res)=>{
       if (res.status === 200){
         // add to progressbar

@@ -13,17 +13,13 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
-window.FilesystemDirectory = FilesystemDirectory; // debug
-window.FilesystemEncoding = FilesystemEncoding;// debug
-// you must use the module directly, rather than using `Plugins.BlobWriter`
-import { writeFile } from 'capacitor-blob-writer' // debug
-window.FilesystemDirectory = FilesystemDirectory; // debug
-window.writeFile = writeFile; // debug
-
+import { writeFile } from 'capacitor-blob-writer' // use module directly not `Plugins.BlobWriter`
+window.writeFile = writeFile;
+window.FilesystemDirectory = FilesystemDirectory;
 import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
-window.Filesystem = Filesystem;// debug
+
 
 const MEDIA_BASE_PATH = "/media";
 
@@ -40,13 +36,14 @@ TODO:
 - find fixes for loading times of videos (preloading in trigger might be needed to bridge this)
 */
 
+// example to build the new file Read/write methods from
 async function downloadVideo() {
   // fetch a blob
   const res = await fetch('http://192.168.178.20:8080/mockserver/my_independent_example_piece/EN_SIGN/1.mp4')
   const blob = await res.blob()
 
   const { uri } = await writeFile({
-    path: 'media/videos/funny.mp4',
+    path: 'media/TESTING/1.mp4',
     directory: FilesystemDirectory.Data,
 
     // data must be a Blob (creating a Blob which wraps other data types
@@ -62,8 +59,7 @@ async function downloadVideo() {
     // a boolean)
     // default: true
     fallback: (err) => {
-      logError(err)
-      return process.env.NODE_ENV === 'production'
+      console.error(err)
     }
   })
 
@@ -114,11 +110,11 @@ function getPlatform(){
   return Capacitor.getPlatform();
 }
 
-async function createDir(path){
+async function createDir(dirpath){
     
     try {
         let ret = await Filesystem.mkdir({
-        path: path,
+        path: dirpath,
         directory: FilesystemDirectory.Documents,
         recursive: false // like mkdir -p
         });
@@ -130,10 +126,10 @@ async function createDir(path){
     
 }
 
-async function readDir(path){
+async function readDir(dirpath){
     try {
         let ret = await Filesystem.readdir({
-          path: path,
+          path: path.join(MEDIA_BASE_PATH,dirpath),
           directory: FilesystemDirectory.Documents
         });
         return ret
@@ -143,14 +139,42 @@ async function readDir(path){
       }
 }
 
+// TODO: catch if running in web, then use different methods for caching or at least dont attempt using blob-writing
 async function fileWrite(filepath, content) {
     try {
-      const result = await Filesystem.writeFile({
-        path: filepath,
+      const result = await writeFile({
+                
+        path: path.join(MEDIA_BASE_PATH, filepath),
+        directory: FilesystemDirectory.Data,
+
+        // data must be a Blob (creating a Blob which wraps other data types
+        // is trivial)
         data: content,
-        directory: FilesystemDirectory.Documents,
-        //encoding: FilesystemEncoding.UTF8
+
+        // create intermediate directories if they don't already exist
+        // default: false
+        recursive: true,
+
+        // fallback to Filesystem.writeFile instead of throwing an error
+        // (you may also specify a unary callback, which takes an Error and returns
+        // a boolean)
+        // default: true
+        fallback: (err) => {
+          console.error(err)
+        }
       })
+      /* await writeFile({
+        path: path.join(MEDIA_BASE_PATH, filepath),
+        recursive: true,
+        data: content, 
+        // because we use diachedelic's capacitor-blob-writer (writeFile instead of Filesystem.writeFile): 
+        // data must be a Blob 
+        directory: FilesystemDirectory.Documents,
+        fallback:function(err){
+          console.error(err)
+          throw(err)
+        }
+      })*/
       console.log('Wrote file', result);
       return result
     } catch(e) {
@@ -161,7 +185,7 @@ async function fileWrite(filepath, content) {
 
 async function readFile(filepath){
     let contents = await Filesystem.readFile({
-        path: filepath,
+        path: path.join(MEDIA_BASE_PATH,filepath),
         directory: FilesystemDirectory.Documents,
         encoding: FilesystemEncoding.UTF8
       });
@@ -178,10 +202,10 @@ async function deleteFile(path) {
     return true
   }
 
-  async function getFileStat(path) {
+  async function getFileStat(filepath) {
     try {
       let ret = await Filesystem.stat({
-        path: path,
+        path: path.join(MEDIA_BASE_PATH,filepath),
         directory: FilesystemDirectory.Documents
       });
       return ret
@@ -414,7 +438,7 @@ async function getFileListFromCache(projectPath){
  * checks if MEDIA_BASE_PATH exists as directory, and creates it if not
  */
 async function initMediaRootDir(){
-  const dir = await readDir(MEDIA_BASE_PATH)
+  const dir = await readDir("/")
   if (dir !== null)
   {
     console.log("Open Theater media root directory was initialized: directory already exists"); 
@@ -438,7 +462,7 @@ export {
   setScreenBrightness, 
   connectToSSID, 
   scanSSIDs,
-  readFile, 
+  readFile,
   createDir, 
   readDir, 
   fileWrite, 
