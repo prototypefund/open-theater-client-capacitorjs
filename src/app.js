@@ -248,9 +248,14 @@ async function initChannel(project,channel){
 
   if (!fileList || fileList === null || fileList === undefined){
     return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
-    // CONTINUE HERE
   }
 
+// CONTINUE HERE
+// TODO: compare filebyfile instead complete list
+          // - check if all new files are present. more are allowed
+          // - check for each file found if identical.
+// TODO: Merge old fileList.json with new fileList.json on update
+// TODO: make into OpenTheater.compareFileList helper functions
   if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,

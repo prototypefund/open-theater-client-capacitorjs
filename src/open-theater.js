@@ -238,17 +238,6 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
 
 }
 
-/**
- * 
- * @param {String} serviceUri 
- * checks serviceUri for its file list and compares with files on the device storage
- * updates the files in device storage to be in sync with files provided by serviceUri
- */
-async function updateFiles(config) { // config obj: { urls:[] , updateObj: null}
-    for (fileuri in config.uris){
-        // download all files to device storage and report back
-    }
-}
 
 /**
  * 
@@ -347,7 +336,8 @@ async function getProvisioningFilesFromProject(channel){
   return listOfAssetFiles
 }
 
-// TODO: ADD DOWNLOAD FUNCTIONS IN PROVISIONING TO COPY FILELIST FROM SERVER TO CACHE 
+// TODO: compare filebyfile instead complete list
+// TODO: Merge old fileList.json with new fileList.json on update
 async function getFileListFromCache(projectPath){
   console.log(`getFileListFromCache got ${projectPath}`);
   
