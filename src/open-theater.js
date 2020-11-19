@@ -325,6 +325,7 @@ function getServiceProtocol(service){
 
 // CONTINUE HERE
 async function getProvisioningFilesFromProject(channel){
+  
   if(!channel.provisioningUri || typeof channel.provisioningUri !== "string"){
     throw "getProvisioningFilesFromProject requires Project obj to contain provisioningUri (string)"
   }

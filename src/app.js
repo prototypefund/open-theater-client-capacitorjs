@@ -12,7 +12,7 @@ import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
 
 
-const TESTCONFIG = [  // REPOLIST
+const TESTCONFIG = [  // REPOLIST 
   {   /* ssid: "open.theater", 
         pw: "live1234" */
     serveruri: "http://192.168.178.20:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
@@ -30,12 +30,9 @@ const DOM_PROJECTLIST = document.querySelector('#projectList')
 
 console.log("loaded", openTheater);
 
-openTheater.helloWorld();
-
 openTheater.getWifiSsid().then((res)=>{
   console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
-
 
 async function loadProjectListFileIfExists() {
   return new Promise((resolve,reject)=>{
@@ -76,8 +73,10 @@ async function showProjectsToUser(projects) {
         </div>`);
       dom_projectDiv.appendChild(button);
       button.addEventListener('click', function handler() {
-        document.dispatchEvent(new CustomEvent('channelChosen', {detail:{project:project, channel:channel}}));
+        console.log("########## got clicked ############");
+        
         this.removeEventListener('click', handler);
+        document.dispatchEvent(new CustomEvent('channelChosen', {detail:{project:project, channel:channel}}));
       })
     }
   
@@ -150,6 +149,9 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     progressbar.bar.remove();
     document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   })
+  .catch((err)=>{
+    alert(`We could not download ${channel.label}. Seems the server is not working.`)
+  })
 
   //return true
 }
@@ -197,6 +199,10 @@ async function initUserFlow() {
   // 3) get projects from PROJECTLIST
   let projects = projectList.projects;
 
+  if (!projects || projects === null || projects === null){
+    alert("could not access projects from repository. Please restart the app.");
+    throw `could not access projects from returned projectList. Probably malformed response from services.json`
+  }
   console.log("awaiting showProjects with param", projects);
 
   await showProjectsToUser(projects);
@@ -205,7 +211,7 @@ async function initUserFlow() {
 
   // 4) choose CHANNEL from PROJECTLIST
   document.addEventListener("channelChosen",function(e) { 
-    console.log(e);
+    console.log("4) channelChosen event", e);
     
     //DOM_PROJECTLIST.classList.add("hidden");
     initChannel(e.detail.project, e.detail.channel) // NEXT
@@ -218,23 +224,24 @@ async function initUserFlow() {
 async function initChannel(project,channel){
   console.log(`channel ${channel.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromProject(channel); // check provisioning API for new content
-  if (!fileList){
-
+  const fileList =  await openTheater.getProvisioningFilesFromProject(channel)
+  .catch((err)=>{
     alert(`could not connect to ${channel.label}'s provisioning endpoint.`+
     "Please check your network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
-    
-    return initUserFlow(); // go back to start
-  }
+     window.location.reload(); // go back to start
+     throw("restarting after issue in initChannel")
+  }); // check provisioning API for new content
+  console.log("initChannel has now fileList", fileList);
   
-
-
   const lastFileList = await openTheater.getFileListFromCache(project.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
+  })
+
+  if (!fileList || fileList === null || fileList === undefined){
     return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
     // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
-  })
+  }
 
   if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
     console.log(`directory of filelist exists but has deviations from filelist received `+
