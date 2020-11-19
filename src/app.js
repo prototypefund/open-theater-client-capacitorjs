@@ -18,7 +18,7 @@ const TESTCONFIG = [  // REPOLIST
     serveruri: "http://192.168.178.20:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
-    serveruri: "https://www.open-theater.de/example-repo/services.json"
+    serveruri: "https://www.open-theater.de/example-repo/services.jsonNOT"
   },
 ];
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
@@ -146,6 +146,11 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     resArray.forEach((res)=>{
       console.log("res",res);
     })
+    // write new FileList.json into Cache
+    openTheater.fileWrite(path.join(project.projectPath.join("/"),"fileList.json"),JSON.stringify(fileList))
+    .then((res)=>{console.log("wrote fileList to device",res);
+    })
+    
     progressbar.bar.remove();
     document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   })
@@ -187,19 +192,20 @@ async function initUserFlow() {
   let projectList = await loadProjectListFileIfExists().catch((err)=>{});
 
   // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
-  if (!projectList) { 
+  if (!projectList || projectList === null || projectList === undefined) { 
   // 2) searches REPOLIST for PROJECTLIST
     projectList = await openTheater.detectServer(TESTCONFIG)
     if (projectList == undefined || projectList == null){
-      alert("could not fetch projectList from Repo Servers. Please check if you are online.")
+      alert("could not fetch projectList from any of the Repo Servers."+ 
+            "Please check if you are online and restart app.")
     }
     console.log(`found projectList:`,projectList);
-  }
+  } 
 
   // 3) get projects from PROJECTLIST
   let projects = projectList.projects;
 
-  if (!projects || projects === null || projects === null){
+  if (!projects || projects === null || projects === undefined){
     alert("could not access projects from repository. Please restart the app.");
     throw `could not access projects from returned projectList. Probably malformed response from services.json`
   }
@@ -234,13 +240,15 @@ async function initChannel(project,channel){
   }); // check provisioning API for new content
   console.log("initChannel has now fileList", fileList);
   
-  const lastFileList = await openTheater.getFileListFromCache(project.projectPath).catch(async (err)=>{
-    console.log("dir of filelist does not exist. gonna have to download everything...",err);
+  const lastFileList = await openTheater.getFileListFromCache(project.projectPath)
+  .catch(async (err)=>{
+    console.log("dir or file of filelist.json does not exist. gonna have to download everything...",err);
+    return null
   })
 
   if (!fileList || fileList === null || fileList === undefined){
     return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
-    // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
+    // CONTINUE HERE
   }
 
   if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
@@ -248,7 +256,6 @@ async function initChannel(project,channel){
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
     return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
-    // CONTINUE HERE: Problem: projectPath contains ALL content for project. so comparing the filelist will not have the effect we want unless we make subdirs per channel OR make a function comparing every item of fileList with the needed files...
   }
   else
   {

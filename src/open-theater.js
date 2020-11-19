@@ -122,6 +122,9 @@ async function readFile(filepath, media_base_path = MEDIA_BASE_PATH){
         path: path.join(media_base_path,filepath),
         directory: FilesystemDirectory.Data,
         encoding: FilesystemEncoding.UTF8
+      })
+      .catch((err)=>{
+        throw err
       });
     //console.log(contents);
     return contents
@@ -323,7 +326,6 @@ function getServiceProtocol(service){
   }
 }
 
-// CONTINUE HERE
 async function getProvisioningFilesFromProject(channel){
   
   if(!channel.provisioningUri || typeof channel.provisioningUri !== "string"){
@@ -345,38 +347,41 @@ async function getProvisioningFilesFromProject(channel){
   return listOfAssetFiles
 }
 
-
-// TODO: CHANGE FILELISTFROMCACHE to fileList.json file instead of reading actual mtimes
 // TODO: ADD DOWNLOAD FUNCTIONS IN PROVISIONING TO COPY FILELIST FROM SERVER TO CACHE 
 async function getFileListFromCache(projectPath){
   console.log(`getFileListFromCache got ${projectPath}`);
   
     const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
     
-    const fileList = await readFile(path.join(projectPath.join("/"),"fileList.json"))
-    .catch((err)=>{throw {message:"getFileListFromCache could not find project Dir",stack:err}})
+    const file = await readFile(path.join(projectPath.join("/"),"fileList.json"))
+      .catch((err)=>{throw {message:"getFileListFromCache could not find projects fileList.json",stack:err}})
     
+    console.log("file is", file);
+    
+    const fileList = JSON.parse(file.data);
+
     console.log("fileList is", fileList);
     
-    if (projectsAssetDir === null){
+    let output = fileList;
+
+    if (!fileList || fileList === null || fileList === undefined){
         console.error(`getFileListFromCache could not find 
         ${path.join(projectPath.join("/"),"fileList.json")}`)
-        return await readDir(projectPath.join("/")) // fallback if no fileList.json present
-      
-    }
+        const fileList = await readDir(projectPath.join("/")) // fallback if no fileList.json present
 
-    const fileListFormatted = await Promise.all(
-      fileList.files.map(async (filename) =>{
-        const filestats = await getFileStat(path.join(projectsAssetDir,filename),"");
-        const lastmodified = filestats.mtime;
-        const filesize = filestats.size;
-
-        return {filepath:filename, filesize: filesize, lastmodified: lastmodified}
-      })
-    )
-
-    const output = {
-      files: fileListFormatted
+        const fileListFormatted = await Promise.all(
+          fileList.files.map(async (filename) =>{
+            const filestats = await getFileStat(path.join(projectsAssetDir,filename),"");
+            const lastmodified = filestats.mtime;
+            const filesize = filestats.size;
+    
+            return {filepath:filename, filesize: filesize, lastmodified: lastmodified}
+          })
+        )
+    
+        output = {
+          files: fileListFormatted
+        }
     }
 
     return output
