@@ -15,8 +15,10 @@
 }
 
 .readyToTrigger::after{
-    content: "READY";
+    content: "START";
+    white-space: pre;
     font-size: 0.6em;
     position: absolute;
     right: 10px;
+    color: red;
 }

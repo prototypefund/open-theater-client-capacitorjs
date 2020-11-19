@@ -27,83 +27,13 @@ const PLATFORM_IS_WEB =  (getPlatform() === "web");
 const PLATFORM_IS_ANDROID = (getPlatform() === "android");
 const PLATFORM_IS_IOS = (getPlatform() === "ios");
 
-// CONTINUE HERE:
 /* 
-TODO: 
-- test on android 
-- test on pwa 
+TODO:
+Downloading Assets: 
+- fix on pwa 
 - if works adapt into opentheater.helperfunctions as read and download
 - find fixes for loading times of videos (preloading in trigger might be needed to bridge this)
 */
-
-// example to build the new file Read/write methods from
-async function downloadVideo() {
-  // fetch a blob
-  const res = await fetch('http://192.168.178.20:8080/mockserver/my_independent_example_piece/EN_SIGN/1.mp4')
-  const blob = await res.blob()
-
-  const { uri } = await writeFile({
-    path: 'media/TESTING/1.mp4',
-    directory: FilesystemDirectory.Data,
-
-    // data must be a Blob (creating a Blob which wraps other data types
-    // is trivial)
-    data: blob,
-
-    // create intermediate directories if they don't already exist
-    // default: false
-    recursive: true,
-
-    // fallback to Filesystem.writeFile instead of throwing an error
-    // (you may also specify a unary callback, which takes an Error and returns
-    // a boolean)
-    // default: true
-    fallback: (err) => {
-      console.error(err)
-    }
-  })
-
-  const src = Capacitor.convertFileSrc(uri)
-
-  const video = document.createElement('video');
-  video.id = "myvideoplayer";
-  video.src = src;
-
-  video.setAttribute('playsinline', 'playsinline');
-  video.style="width:100%";
-  video.autoplay = true;
-  video.controls = false;
-
-
-  // watch the video offline!
-  document.body.appendChild(video);
-}
-window.downloadVideo = downloadVideo;
-
-function modifyURLString(input){
-  
-  return input;
-  
-  // TODO: Kristian
-    /*
-    let triggerURL = new URL(projects.triggerUri); 
-          
-    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below, maybe it can shorten this part?
-    if(triggerURL.protocol == "ws:") {}
-
-    if(triggerURL.protocol == "mqtt:") {}
-
-    if(triggerURL.protocol == "http:") {}
-    if(triggerURL.protocol == "https:") {}
-
-    triggerURL.searchParams.get('token');
-    triggerURL.search == "?token={{OPENTHEATER_APP_ID}}"
-
-    triggerURL.toString()
-    */
-
-  
-}
 
 
 function getPlatform(){
@@ -115,7 +45,7 @@ async function createDir(dirpath){
     try {
         let ret = await Filesystem.mkdir({
         path: dirpath,
-        directory: FilesystemDirectory.Documents,
+        directory: FilesystemDirectory.Data,
         recursive: false // like mkdir -p
         });
         return ret
@@ -127,14 +57,16 @@ async function createDir(dirpath){
 }
 
 async function readDir(dirpath){
+    console.log(`openTheater.readDir got ${dirpath}`);
+    
     try {
         let ret = await Filesystem.readdir({
           path: path.join(MEDIA_BASE_PATH,dirpath),
-          directory: FilesystemDirectory.Documents
+          directory: FilesystemDirectory.Data
         });
         return ret
       } catch(e) {
-        console.error('Unable to read dir', e);
+        console.error('OpenTheater.readDir: Unable to read dir', e);
         return null
       }
 }
@@ -169,7 +101,7 @@ async function fileWrite(filepath, content) {
         data: content, 
         // because we use diachedelic's capacitor-blob-writer (writeFile instead of Filesystem.writeFile): 
         // data must be a Blob 
-        directory: FilesystemDirectory.Documents,
+        directory: FilesystemDirectory.Data,
         fallback:function(err){
           console.error(err)
           throw(err)
@@ -183,34 +115,36 @@ async function fileWrite(filepath, content) {
     }
 }
 
-async function readFile(filepath){
+async function readFile(filepath, media_base_path = MEDIA_BASE_PATH){
+    console.log("openTheater.readFile got", filepath);
+    
     let contents = await Filesystem.readFile({
-        path: path.join(MEDIA_BASE_PATH,filepath),
-        directory: FilesystemDirectory.Documents,
+        path: path.join(media_base_path,filepath),
+        directory: FilesystemDirectory.Data,
         encoding: FilesystemEncoding.UTF8
       });
-    console.log(contents);
+    //console.log(contents);
     return contents
 }
 
 async function deleteFile(path) {
     await Filesystem.deleteFile({
       path: path,
-      directory: FilesystemDirectory.Documents
+      directory: FilesystemDirectory.Data
     });
     console.log("file delete was forwarded to system");
     return true
   }
 
-  async function getFileStat(filepath) {
+  async function getFileStat(filepath,media_base_path = MEDIA_BASE_PATH) {
     try {
       let ret = await Filesystem.stat({
-        path: path.join(MEDIA_BASE_PATH,filepath),
-        directory: FilesystemDirectory.Documents
+        path: path.join(media_base_path,filepath),
+        directory: FilesystemDirectory.Data
       });
       return ret
     } catch(e) {
-      console.error('Unable to stat file', e);
+      console.error(`openTheater.getFileStat: Unable to stat file ${filepath}`, e);
       return null
     }
   }
@@ -277,7 +211,12 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
     let projects = await fetch(endpoint.serveruri).then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
-    );
+    )
+    .catch((err)=>{
+      console.error(`openTheater.detectServer could not fetch from endpoint.serveruri 
+      ${endpoint.serveruri}`,err);
+      return null
+    });
     console.log(projects);
 
     if (!projects){
@@ -406,17 +345,28 @@ async function getProvisioningFilesFromProject(channel){
 }
 
 
-// TODO: return fileList from Cache in the same structure as we expect it from the provising servers
-
+// TODO: CHANGE FILELISTFROMCACHE to fileList.json file instead of reading actual mtimes
+// TODO: ADD DOWNLOAD FUNCTIONS IN PROVISIONING TO COPY FILELIST FROM SERVER TO CACHE 
 async function getFileListFromCache(projectPath){
+  console.log(`getFileListFromCache got ${projectPath}`);
+  
     const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
     
-    const fileList = await readDir(projectsAssetDir)
-    .catch((err)=>{throw "getFileListFromCache could not find project Dir"})
+    const fileList = await readFile(path.join(projectPath.join("/"),"fileList.json"))
+    .catch((err)=>{throw {message:"getFileListFromCache could not find project Dir",stack:err}})
+    
+    console.log("fileList is", fileList);
+    
+    if (projectsAssetDir === null){
+        console.error(`getFileListFromCache could not find 
+        ${path.join(projectPath.join("/"),"fileList.json")}`)
+        return await readDir(projectPath.join("/")) // fallback if no fileList.json present
+      
+    }
 
     const fileListFormatted = await Promise.all(
       fileList.files.map(async (filename) =>{
-        const filestats = await getFileStat(path.join(projectsAssetDir,filename));
+        const filestats = await getFileStat(path.join(projectsAssetDir,filename),"");
         const lastmodified = filestats.mtime;
         const filesize = filestats.size;
 
@@ -473,6 +423,5 @@ export {
   getFileListFromCache,
   initMediaRootDir,
   /*updateFiles,*/
-  downloadVideo
 };
  

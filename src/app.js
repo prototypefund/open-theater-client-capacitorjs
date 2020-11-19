@@ -15,7 +15,7 @@ import path from 'path-browserify';
 const TESTCONFIG = [  // REPOLIST
   {   /* ssid: "open.theater", 
         pw: "live1234" */
-    serveruri: "/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.20:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
     serveruri: "https://www.open-theater.de/example-repo/services.json"
@@ -98,9 +98,7 @@ function htmlToElem(html) {
 async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
-
-  // CONTINUE HERE:
-  // TODO: implement fetch-progress only as file done and then multifile fetch-promise with counter
+  // TODO: implement multifile fetch-promise with counter
 
   let progressbar = bar(channel.provisioningUri);
   let progress = 0;
@@ -108,8 +106,8 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
   console.log(`files to download for ${channel.label}`, fileList);
   
   let fetchPromises = [];
-
-  const progressPerFile = 100/fileList.files.length; // TODO: make fancier by using total bytes instead of num of files...
+  // TODO: make fancier by using total bytes instead of num of files...
+  const progressPerFile = 100/fileList.files.length; 
 
   for (const file of fileList.files){
     
@@ -120,37 +118,24 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     const fetchProm = fetch(newpath)
     .then((res)=>{
       if (res.status === 200){
-        // add to progressbar
-        progress = progress + progressPerFile;
-        progressbar.set(progress);
-        // TODO: save to openTheater FileSystem / Asset Cache
         return res.blob();
       }
-      return res
+      else if (res.status >= 400){
+        console.error("ERROR CODE WHILE FETCHING ASSET", res);
+        throw "HTTP ERROR CODE RECEIVED"
+      }
+      else
+      {
+        console.error("")
+        throw "this should never happen"
+      }
     })
     .then((blob)=>{
-      return openTheater.fileWrite(file.filepath,blob); // write to Disk / Cache // TODO: write to correct Project Subdir!!!!!!!! // Test if loadable again!!!
-/*
-// TODO: add this as helper into openTheater.toBase64() and openTheater.toLocalFileUrl() for native
-// check if this is fast enough for video or if we have a problem with the loading behaviour here (toBase64 should take time even from disk no?)
-
-// better possibly (at least for non-webapp: using Capacitor.convertFileSrc() as described in: https://capacitorjs.com/docs/basics/utilities#convertfilesrc)
-
-openTheater.readFile("/2.mp4").then((blob)=>{
-    var reader = new FileReader();
-     reader.readAsDataURL(blob.data); 
-     reader.onloadend = function() {
-         var base64data = reader.result;                
-         //console.log(base64data);
-        document.body.innerHTML = `
-<video src="${base64data}" autoplay controls>
-`
-     }
-})
-
-*/
-
-
+      // add to progressbar
+      progress = progress + progressPerFile;
+      progressbar.set(progress);
+      // write to Disk / Cache
+      return openTheater.fileWrite(path.join(project.projectPath.join("/"),file.filepath),blob); 
     })
     fetchPromises.push(fetchProm);
   }
@@ -159,10 +144,11 @@ openTheater.readFile("/2.mp4").then((blob)=>{
   .then((resArray)=>{
     console.log("download attempts done",resArray); 
     // TODO: check for NON 200 responses and react to failed Downloads
-
+    resArray.forEach((res)=>{
+      console.log("res",res);
+    })
     progressbar.bar.remove();
-    //document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
-
+    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   })
 
   //return true
@@ -201,7 +187,10 @@ async function initUserFlow() {
   // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
   if (!projectList) { 
   // 2) searches REPOLIST for PROJECTLIST
-    projectList = await openTheater.detectServer(TESTCONFIG) 
+    projectList = await openTheater.detectServer(TESTCONFIG)
+    if (projectList == undefined || projectList == null){
+      alert("could not fetch projectList from Repo Servers. Please check if you are online.")
+    }
     console.log(`found projectList:`,projectList);
   }
 
@@ -239,6 +228,8 @@ async function initChannel(project,channel){
     return initUserFlow(); // go back to start
   }
   
+
+
   const lastFileList = await openTheater.getFileListFromCache(project.projectPath).catch(async (err)=>{
     console.log("dir of filelist does not exist. gonna have to download everything...",err);
     return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
