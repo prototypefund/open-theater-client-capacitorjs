@@ -124,6 +124,8 @@ async function readFile(filepath, media_base_path = MEDIA_BASE_PATH){
         encoding: FilesystemEncoding.UTF8
       })
       .catch((err)=>{
+        console.log("openTheater.readFile got an error",err);
+        
         throw err
       });
     //console.log(contents);
@@ -211,7 +213,7 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
 
   // actual serverConnection/search:
     console.log("fetching projects from", endpoint.serveruri)
-    let projects = await fetch(endpoint.serveruri).then(async (res)=>{
+    let projects = await fetch(endpoint.serveruri,{cache: "no-store"}).then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
     )
@@ -325,7 +327,7 @@ async function getProvisioningFilesFromProject(channel){
   url.pathname = path.join(url.pathname,"fileList.json");
   url = url.toString();
 
-  const listOfAssetFilesResponse = await fetch(url);
+  const listOfAssetFilesResponse = await fetch(url,{cache: "no-store"});
   if (!listOfAssetFilesResponse.ok){
     throw "getProvisioningFilesFromProject encountered an error communicating with provisioning server"
   }
@@ -399,6 +401,42 @@ async function initMediaRootDir(){
   }
 }
 
+/**
+ * compares to fileListObjects and returns an array of files to be updated
+ * depending on whether the files are either newer or unknown to the cache 
+ * object (oldFileList)
+ * 
+ * @param {object} oldFileList - the fileList.json object from Cache
+ * @param {object} newFileList - the fileList.json object from the provisioningserver
+ */
+function getFileListDiff(oldFileList,newFileList){
+
+  if (oldFileList === null || oldFileList === undefined){
+    return newFileList.files
+  }
+  let nonmatching = [];
+
+  for (const newfile of newFileList.files){
+    // if newfile.filepath is not to be found at all in oldFileList:
+    if (!oldFileList.files.some((oldfile)=>{return oldfile.filepath === newfile.filepath})){
+      nonmatching.push(newfile);
+    }
+    // if newfile.filepath matches a file in oldfiles but its timestamp is newer:
+    else if (oldFileList.files.some(
+        (oldfile)=>{
+          console.log(oldfile,"is older than", 
+            newfile, ((oldfile.filepath === newfile.filepath) && (oldfile.lastmodified < newfile.lastmodified)))
+          return ((oldfile.filepath === newfile.filepath) && (oldfile.lastmodified < newfile.lastmodified))
+        })
+    ){
+      nonmatching.push(newfile);
+    }
+  }
+  
+  console.log("openTheater.getFileListDiff nonmatching:",nonmatching);
+  return nonmatching
+}
+
 export { 
   helloWorld,
   getPlatform, 
@@ -418,6 +456,7 @@ export {
   getProvisioningFilesFromProject,
   getFileListFromCache,
   initMediaRootDir,
+  getFileListDiff,
   /*updateFiles,*/
 };
  

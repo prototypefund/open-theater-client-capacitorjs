@@ -10,12 +10,12 @@ nothing to do with the API nor the runtime environment of this app:
 
 import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
-
+import "lodash"; // can be found as _ 
 
 const TESTCONFIG = [  // REPOLIST 
   {   /* ssid: "open.theater", 
         pw: "live1234" */
-    serveruri: "http://192.168.178.20:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
     serveruri: "https://www.open-theater.de/example-repo/services.jsonNOT"
@@ -94,7 +94,7 @@ function htmlToElem(html) {
 
 
 
-async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel){
+async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
 
   // TODO: implement multifile fetch-promise with counter
@@ -102,13 +102,13 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
   let progressbar = bar(channel.provisioningUri);
   let progress = 0;
 
-  console.log(`files to download for ${channel.label}`, fileList);
+  console.log(`files to download for ${channel.label}`, updateList);
   
   let fetchPromises = [];
   // TODO: make fancier by using total bytes instead of num of files...
-  const progressPerFile = 100/fileList.files.length; 
+  const progressPerFile = 100/updateList.length; 
 
-  for (const file of fileList.files){
+  for (const file of updateList){
     
     const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
 
@@ -125,7 +125,6 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
       }
       else
       {
-        console.error("")
         throw "this should never happen"
       }
     })
@@ -140,14 +139,32 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
   }
 
   Promise.all(fetchPromises)
-  .then((resArray)=>{
+  .then(async (resArray)=>{
     console.log("download attempts done",resArray); 
     // TODO: check for NON 200 responses and react to failed Downloads
     resArray.forEach((res)=>{
       console.log("res",res);
     })
     // write new FileList.json into Cache
-    openTheater.fileWrite(path.join(project.projectPath.join("/"),"fileList.json"),JSON.stringify(fileList))
+    const fileListPathCache = path.join(project.projectPath.join("/"),"fileList.json");
+
+    const oldFileListFile = await openTheater.readFile(fileListPathCache)
+    .catch(
+      (err)=>{
+        console.error("could not read old fileList.json from device",err);
+        return {data:`{"files":[]}`};
+    });
+    console.log("oldFileListFile", oldFileListFile);
+    
+    const oldFileList = JSON.parse(oldFileListFile.data);
+    console.log("oldFileList is",oldFileList, "updateList is", updateList);
+    
+    let newFileList = oldFileList; // CONTINUE HERE: test
+    newFileList.files = _.unionBy(updateList, oldFileList.files,"filepath");
+    console.log("newFileList:", newFileList);
+    
+
+    openTheater.fileWrite(fileListPathCache,JSON.stringify(newFileList))
     .then((res)=>{console.log("wrote fileList to device",res);
     })
     
@@ -155,6 +172,8 @@ async function showUpdateOptionToUserOrUpdateAutomatically(fileList,project,chan
     document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   })
   .catch((err)=>{
+    console.error(err);
+    
     alert(`We could not download ${channel.label}. Seems the server is not working.`)
   })
 
@@ -247,20 +266,20 @@ async function initChannel(project,channel){
   })
 
   if (!fileList || fileList === null || fileList === undefined){
-    return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(null,project,channel); // TODO: philip
   }
 
 // CONTINUE HERE
-// TODO: compare filebyfile instead complete list
-          // - check if all new files are present. more are allowed
-          // - check for each file found if identical.
 // TODO: Merge old fileList.json with new fileList.json on update
 // TODO: make into OpenTheater.compareFileList helper functions
-  if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){
+
+  const updateList = openTheater.getFileListDiff(lastFileList,fileList);
+
+  if (updateList.length > 0){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return showUpdateOptionToUserOrUpdateAutomatically(fileList,project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel); // TODO: philip
   }
   else
   {
@@ -269,7 +288,6 @@ async function initChannel(project,channel){
     
     document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
   }
-  
 }
 
 document.addEventListener("provisioningDone",function(e) { 
@@ -279,7 +297,7 @@ document.addEventListener("provisioningDone",function(e) {
 
   //enterTriggerMode(e.detail.chosenProject, e.detail.channelList.projectPath) // NEXT
 
-},{ once: false }) // once per project
+},{ once: false }) // once per channel
 
 
 async function activateTriggerModeForProjectButton(detail){

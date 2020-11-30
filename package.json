@@ -34,6 +34,7 @@
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
     "fetch-progress": "^1.3.0",
+    "lodash": "^4.17.20",
     "path-browserify": "^1.0.1",
     "vue": "^2.6.12",
     "wifiwizard2": "^3.1.1"
