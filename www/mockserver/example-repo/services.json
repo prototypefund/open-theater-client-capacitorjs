@@ -6,17 +6,16 @@
             [
                 {
                     "triggerUri": "wss://foo.bar",
-                    "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_READ/",
                     "channelType": "text",
-                    "label": "DE Read",
-                    "chachedLastAssetModified":"// optional? empfohlen? // repository server SHOULD cache this data from provisioningUri in regular intervals. // SHALL NOT BE USED TO CIRCUMVENT VISIT OF PROVISIONING URI !!!!" 
+                    "label": "DE Read"
                 },
                 {
                     "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
                     "COMMENT":"{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
                     "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
                     "channelType": "video",
-                    "label": "DE Sign"
+                    "label": "DE Sign",
+                    "lastmodified": 1603717835595
                 },
                 {
                     "triggerUri": "https://foo.bar",

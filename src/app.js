@@ -10,15 +10,18 @@ nothing to do with the API nor the runtime environment of this app:
 
 import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
-import "lodash"; // can be found as _ 
+import "lodash"; // can be used as _ // TODO: import only used code
 
 const TESTCONFIG = [  // REPOLIST 
-  {   /* ssid: "open.theater", 
-        pw: "live1234" */
+  { ssid: "open.theater", 
+    pw: "live1234",
     serveruri: "http://192.168.178.38:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
-    serveruri: "https://www.open-theater.de/example-repo/services.jsonNOT"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+  },
+  {
+    serveruri: "https://www.open-theater.de/example-repo/services.json"
   },
 ];
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
@@ -169,7 +172,9 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
     })
     
     progressbar.bar.remove();
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+    document.dispatchEvent(new CustomEvent('provisioningDone', 
+      {detail:{project: project, chosenChannel:channel}})
+    )
   })
   .catch((err)=>{
     console.error(err);
@@ -249,6 +254,12 @@ async function initUserFlow() {
 async function initChannel(project,channel){
   console.log(`channel ${channel.label} was chosen by user and will be initiated`);
   
+  if(channel.provisioningUri === null || channel.provisioningUri === undefined)
+  {
+    console.log("this channel does not have any provisioningUri and will not need any provisioning");
+    return document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+  }
+
   const fileList =  await openTheater.getProvisioningFilesFromProject(channel)
   .catch((err)=>{
     alert(`could not connect to ${channel.label}'s provisioning endpoint.`+
@@ -258,19 +269,18 @@ async function initChannel(project,channel){
      throw("restarting after issue in initChannel")
   }); // check provisioning API for new content
   console.log("initChannel has now fileList", fileList);
-  
+
   const lastFileList = await openTheater.getFileListFromCache(project.projectPath)
   .catch(async (err)=>{
     console.log("dir or file of filelist.json does not exist. gonna have to download everything...",err);
     return null
   })
-
+  
   if (!fileList || fileList === null || fileList === undefined){
-    return showUpdateOptionToUserOrUpdateAutomatically(null,project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(null,project,channel); 
   }
 
 // CONTINUE HERE
-// TODO: Merge old fileList.json with new fileList.json on update
 // TODO: make into OpenTheater.compareFileList helper functions
 
   const updateList = openTheater.getFileListDiff(lastFileList,fileList);
@@ -279,7 +289,7 @@ async function initChannel(project,channel){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel); 
   }
   else
   {
