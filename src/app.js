@@ -37,18 +37,10 @@ openTheater.getWifiSsid().then((res)=>{
   console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
 
-async function loadProjectListFileIfExists() {
-  return new Promise((resolve,reject)=>{
-    reject(null)
-  }) // Placeholder
-}
-
 async function showProjectsToUser(projects) {
   console.log("showProjectsToUser got:",projects);
       
   if (projects.length < 1) {return null}
-
-  // document.querySelector("#projectList")// show ProjectList
 
   for (const project of projects) {
     console.log("channelList",project);
@@ -65,7 +57,7 @@ async function showProjectsToUser(projects) {
     DOM_PROJECTLISTBUTTONS.appendChild(dom_projectDiv);
 
     for (const channel of project.channelList){
-      console.log(channel);
+      console.log("channel:",channel);
       
       // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
@@ -75,6 +67,40 @@ async function showProjectsToUser(projects) {
           </button>
         </div>`);
       dom_projectDiv.appendChild(button);
+
+      // CONTINUE HERE: BROKEN: fileList.json in cache is per project not per Channel as should be
+      // TODO: make fileList.json per Channel and think about if we have to do the same for the asset files as well!!!
+      // CONTINUE HERE: put into helper function!
+      // mark as up-to-date if channel has .lastmodified and up to date with client's cached fileList of channel
+      if(channel.lastmodified !== undefined && channel.lastmodified !== null){
+        console.log(`channel ${channel.label} has lastmodified flag:`, channel.lastmodified, "will check local cached fileList.json");
+        openTheater.getFileListFromCache(project.projectPath).then((res)=>{
+          // get latest lastmodified from FileList // CONTINUE HERE: error catching and helper functions
+          let lastmodified = 0;
+          for (const file of res.files){
+            if (file.lastmodified > lastmodified){
+              lastmodified = file.lastmodified;
+            }
+          }
+          console.log(`latest last modified from cached FileList for channel ${channel.label}:`
+            , lastmodified);
+          if (lastmodified === channel.lastmodified)
+          {
+            console.log(`channel ${channel.label} seems to have up-to-date fileList. Will mark it...`);
+            button.classList.add("up-to-date-filelist")
+          }
+          else
+          {
+            console.log(`channel ${channel.label} not up-to-date`);
+          }
+        })
+        .catch((err)=>{
+          console.log(`could not find a fileList in cache for channel ${channel.label}. 
+          So: channel needs to check for updates.`,err);
+        })
+      }
+
+      // add Eventhandler
       button.addEventListener('click', function handler() {
         console.log("########## got clicked ############");
         
@@ -212,22 +238,20 @@ async function initUserFlow() {
   DOM_PROJECTLISTBUTTONS.innerHTML = "";
   DOM_PROJECTLIST.classList.remove("hidden");
 
-  // only for demo reference (how to ignore REPOs)
-  let projectList = await loadProjectListFileIfExists().catch((err)=>{});
-
   // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
-  if (!projectList || projectList === null || projectList === undefined) { 
   // 2) searches REPOLIST for PROJECTLIST
-    projectList = await openTheater.detectServer(TESTCONFIG)
-    if (projectList == undefined || projectList == null){
-      alert("could not fetch projectList from any of the Repo Servers."+ 
-            "Please check if you are online and restart app.")
-    }
-    console.log(`found projectList:`,projectList);
-  } 
+  const projectList = await openTheater.detectServer(TESTCONFIG)
+  if (projectList == undefined || projectList == null){
+    alert("could not fetch projectList from any of the Repo Servers."+ 
+          "Please check if you are online and restart app.")
+  }
+  console.log(`found projectList:`,projectList);
 
   // 3) get projects from PROJECTLIST
   let projects = projectList.projects;
+
+  console.log("projectList from service.json:",projectList);
+  
 
   if (!projects || projects === null || projects === undefined){
     alert("could not access projects from repository. Please restart the app.");

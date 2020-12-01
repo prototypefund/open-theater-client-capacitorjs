@@ -10,8 +10,14 @@
     width: 80%;
 }
 
+.up-to-date-filelist button{
+    background-color: yellowgreen;
+    color: black
+}
+
 .readyToTrigger{
     background-color: green !important;
+    color:white
 }
 
 .readyToTrigger::after{
