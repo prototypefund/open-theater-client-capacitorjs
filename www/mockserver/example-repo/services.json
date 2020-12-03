@@ -1,54 +1,56 @@
 {
-    "projects": [
+  "projects": [
+    {
+      "projectPath": [
+        "MY_INDEPENDENT_EXAMPLE_PIECE"
+      ],
+      "channelList": [
         {
-            "projectPath":["MY_INDEPENDENT_EXAMPLE_PIECE"],
-            "channelList":   
-            [
-                {
-                    "triggerUri": "wss://foo.bar",
-                    "channelType": "text",
-                    "label": "DE Read",
-                    "channelId": "DE_Untertitel"
-                },
-                {
-                    "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
-                    "COMMENT":"{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
-                    "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
-                    "channelType": "video",
-                    "label": "DE Sign",
-                    "channelId":"DE_Sign"
-                    
-                },
-                {
-                    "triggerUri": "https://foo.bar",
-                    "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/EN_SIGN/",
-                    "channelType": "video",
-                    "label": "EN Sign",
-                    "channelId": "EN_Sign",
-                    "lastmodified":1603717835600
-                }
-            ]
+          "triggerUri": "wss://foo.bar",
+          "channelType": "text",
+          "label": "DE Read",
+          "channelId": "DE_Untertitel"
         },
         {
-            "projectPath":["Staatstheater Mannheim","Kammerspiele","Shakespears anderes Stück"],
-            "channelList":   
-            [
-                {
-                    "triggerUri": "wss://foo.bar/2",
-                    "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/DE_UNTERTITEL",
-                    "channelType": "text",
-                    "label": "DE Untertitel",
-                    "channelId":"DE_Untertitel"
-                },
-                {
-                    "triggerUri": "https://foo.bar/2",
-                    "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/EN_SUBTITLES",
-                    "channelType": "video",
-                    "label": "EN Subtitles",
-                    "channelId":"EN_Untertitel"
-                }
-            ]
+          "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
+          "COMMENT": "{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
+          "channelType": "video",
+          "label": "DE Sign",
+          "channelId": "DE_Sign"
+        },
+        {
+          "triggerUri": "https://foo.bar",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/EN_SIGN/",
+          "channelType": "video",
+          "label": "EN Sign",
+          "channelId": "EN_Sign",
+          "lastmodified": 16037178357000
         }
-    ]
-      
+      ]
+    },
+    {
+      "projectPath": [
+        "Staatstheater Mannheim",
+        "Kammerspiele",
+        "Shakespears anderes Stück"
+      ],
+      "channelList": [
+        {
+          "triggerUri": "wss://foo.bar/2",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/DE_UNTERTITEL",
+          "channelType": "text",
+          "label": "DE Untertitel",
+          "channelId": "DE_Untertitel"
+        },
+        {
+          "triggerUri": "https://foo.bar/2",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/EN_SUBTITLES",
+          "channelType": "video",
+          "label": "EN Subtitles",
+          "channelId": "EN_Untertitel"
+        }
+      ]
+    }
+  ]
 }
