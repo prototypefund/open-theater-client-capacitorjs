@@ -17,7 +17,8 @@
           "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
           "channelType": "video",
           "label": "DE Sign",
-          "channelId": "DE_Sign"
+          "channelId": "DE_Sign",
+          "lastmodified": 1603717835596
         },
         {
           "triggerUri": "https://foo.bar",

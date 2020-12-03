@@ -1,3 +1,12 @@
+/*
+ will update repoFilePath based on fileList.json's of each provisioningUri to their latest lastmodified timestamp.
+
+ to be run every 15 minutes on Repository Server to keep everything up to date.
+
+ TODO: 
+ - add further checks into repository to e.g. clean out or mark unreachable or malformed provisioningServers.
+ */
+
 const fs = require("fs");
 const fetch = require("node-fetch");
 
