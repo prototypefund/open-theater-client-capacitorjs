@@ -340,12 +340,12 @@ async function getProvisioningFilesFromProject(channel){
 
 // TODO: compare filebyfile instead complete list
 // TODO: Merge old fileList.json with new fileList.json on update
-async function getFileListFromCache(projectPath){
+async function getFileListFromCache(projectPath, channelId){
   console.log(`getFileListFromCache got ${projectPath}`);
   
-    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
+    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"), channelId); // CONTINUE HERE
     
-    const file = await readFile(path.join(projectPath.join("/"),"fileList.json"))
+    const file = await readFile(path.join(projectPath.join("/"),channelId,"fileList.json"))
       .catch((err)=>{throw {message:"getFileListFromCache could not find projects fileList.json",stack:err}})
     
     console.log("file is", file);

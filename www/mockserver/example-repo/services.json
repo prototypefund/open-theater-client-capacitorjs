@@ -7,7 +7,8 @@
                 {
                     "triggerUri": "wss://foo.bar",
                     "channelType": "text",
-                    "label": "DE Read"
+                    "label": "DE Read",
+                    "channelId": "DE_Untertitel"
                 },
                 {
                     "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
@@ -15,13 +16,16 @@
                     "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
                     "channelType": "video",
                     "label": "DE Sign",
-                    "lastmodified": 1603717835595
+                    "channelId":"DE_Sign"
+                    
                 },
                 {
                     "triggerUri": "https://foo.bar",
                     "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/EN_SIGN/",
                     "channelType": "video",
-                    "label": "EN Sign"
+                    "label": "EN Sign",
+                    "channelId": "EN_Sign",
+                    "lastmodified":1603717835600
                 }
             ]
         },
@@ -33,13 +37,15 @@
                     "triggerUri": "wss://foo.bar/2",
                     "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/DE_UNTERTITEL",
                     "channelType": "text",
-                    "label": "DE Untertitel"
+                    "label": "DE Untertitel",
+                    "channelId":"DE_Untertitel"
                 },
                 {
                     "triggerUri": "https://foo.bar/2",
                     "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/EN_SUBTITLES",
                     "channelType": "video",
-                    "label": "EN Subtitles"
+                    "label": "EN Subtitles",
+                    "channelId":"EN_Untertitel"
                 }
             ]
         }

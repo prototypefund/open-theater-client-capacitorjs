@@ -74,7 +74,7 @@ async function showProjectsToUser(projects) {
       // mark as up-to-date if channel has .lastmodified and up to date with client's cached fileList of channel
       if(channel.lastmodified !== undefined && channel.lastmodified !== null){
         console.log(`channel ${channel.label} has lastmodified flag:`, channel.lastmodified, "will check local cached fileList.json");
-        openTheater.getFileListFromCache(project.projectPath).then((res)=>{
+        openTheater.getFileListFromCache(project.projectPath, channel.channelId).then((res)=>{
           // get latest lastmodified from FileList // CONTINUE HERE: error catching and helper functions
           let lastmodified = 0;
           for (const file of res.files){
@@ -162,7 +162,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
       progress = progress + progressPerFile;
       progressbar.set(progress);
       // write to Disk / Cache
-      return openTheater.fileWrite(path.join(project.projectPath.join("/"),file.filepath),blob); 
+      return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelId,file.filepath),blob); 
     })
     fetchPromises.push(fetchProm);
   }
@@ -175,7 +175,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
       console.log("res",res);
     })
     // write new FileList.json into Cache
-    const fileListPathCache = path.join(project.projectPath.join("/"),"fileList.json");
+    const fileListPathCache = path.join(project.projectPath.join("/"),channel.channelId,"fileList.json");
 
     const oldFileListFile = await openTheater.readFile(fileListPathCache)
     .catch(
@@ -294,7 +294,7 @@ async function initChannel(project,channel){
   }); // check provisioning API for new content
   console.log("initChannel has now fileList", fileList);
 
-  const lastFileList = await openTheater.getFileListFromCache(project.projectPath)
+  const lastFileList = await openTheater.getFileListFromCache(project.projectPath, channel.channelId)
   .catch(async (err)=>{
     console.log("dir or file of filelist.json does not exist. gonna have to download everything...",err);
     return null
