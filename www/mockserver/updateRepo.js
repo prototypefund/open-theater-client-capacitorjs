@@ -1,7 +1,5 @@
 const fs = require("fs");
-const path = require("path");
 const fetch = require("node-fetch");
-const { Resource$Liasettings } = require("googleapis/build/src/apis/content/v2");
 
 const repoFilePath = "./example-repo/services.json";
 
@@ -25,23 +23,22 @@ fs.promises.readFile(repoFilePath,{encoding:"utf-8"})
             }
             const body = await result.json()
             .catch((err)=>{"json body malformed",err});
-            //console.log(body);
             for (file of body.files){
                 console.log(file);
                 // compare timestamps
                 if (file.lastmodified > channel.lastmodified)
                 {
                     console.log("UPDATE!!!!",file.lastmodified);
+                    // update projectListObj
                     projectListObj.projects[i].channelList[j].lastmodified = file.lastmodified;
-                    console.log(projectListObj.projects[i].channelList[j].lastmodified);
+                    
                 }
             }
             
         }
     }
-    
+    // write new projectListObj
     const newProjectList = JSON.stringify(projectListObj,null,2);
-    //console.log(JSON.stringify(projectListObj,null,2));
     await fs.promises.writeFile(repoFilePath,newProjectList,"utf-8")
 })
 .catch((err)=>{
