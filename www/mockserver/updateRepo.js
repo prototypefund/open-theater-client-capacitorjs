@@ -10,11 +10,14 @@
 const fs = require("fs");
 const fetch = require("node-fetch");
 
-const repoFilePath = "./example-repo/services.json";
+const repoFilePath = "./example-repo/projectList.json";
 
+const fileListName = "fileList.json";
 
 fs.promises.readFile(repoFilePath,{encoding:"utf-8"})
 .then(async (projectList)=>{
+    let needsUpdate = false;
+
     let projectListObj = JSON.parse(projectList);
     let projects = projectListObj.projects;
 
@@ -25,9 +28,9 @@ fs.promises.readFile(repoFilePath,{encoding:"utf-8"})
             let channel = proj.channelList[j];
             if (channel.provisioningUri === undefined || channel.provisioningUri === null){continue}
             
-            const result = await fetch(new URL("fileList.json",channel.provisioningUri))
+            const result = await fetch(new URL(fileListName,channel.provisioningUri))
             if(result.status !== 200){
-                console.log("could not access",channel.provisioningUri);
+                console.log("could not access",channel.provisioningUri, result.status);
                 continue
             }
             const body = await result.json()
@@ -40,18 +43,22 @@ fs.promises.readFile(repoFilePath,{encoding:"utf-8"})
                     console.log("UPDATE!!!!",file.lastmodified);
                     // update projectListObj
                     projectListObj.projects[i].channelList[j].lastmodified = file.lastmodified;
-                    
+                    needsUpdate = true;   
                 }
             }
             
         }
     }
-    // write new projectListObj
-    const newProjectList = JSON.stringify(projectListObj,null,2);
-    await fs.promises.writeFile(repoFilePath,newProjectList,"utf-8")
+
+    if (needsUpdate){
+        // write new projectListObj
+        const newProjectList = JSON.stringify(projectListObj,null,2);
+        await fs.promises.writeFile(repoFilePath,newProjectList,"utf-8")
+    }
+    
 })
 .catch((err)=>{
-    console.log(err);
+    throw err;
 })
 
 

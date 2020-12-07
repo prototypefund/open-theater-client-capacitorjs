@@ -12,7 +12,7 @@ import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
 import "lodash"; // can be used as _ // TODO: import only used code
 
-const TESTCONFIG = [  // REPOLIST 
+const TESTCONFIG = [  // REPOLIST
   { ssid: "open.theater", 
     pw: "live1234",
     serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
