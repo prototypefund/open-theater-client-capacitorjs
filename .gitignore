@@ -13,3 +13,4 @@ android/*
 *.mp4
 *.mov
 *.mp3
+.vscode/settings.json

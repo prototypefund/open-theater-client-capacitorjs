@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx webpack; npx cap sync; npx cap copy;",
-    "dev": "npx webpack --watch --progress;"
+    "dev": "npx webpack --watch --progress;",
+    "mockserver": "cd www/mockserver/; nodemon updateRepo.js;"
   },
   "repository": {
     "type": "git",

@@ -15,13 +15,13 @@ import "lodash"; // can be used as _ // TODO: import only used code
 const TESTCONFIG = [  // REPOLIST 
   { ssid: "open.theater", 
     pw: "live1234",
-    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
-    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
-    serveruri: "https://www.open-theater.de/example-repo/services.json"
+    serveruri: "https://www.open-theater.de/example-repo/projectList.json"
   },
 ];
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
@@ -68,11 +68,12 @@ async function showProjectsToUser(projects) {
         </div>`);
       dom_projectDiv.appendChild(button);
 
-      // CONTINUE HERE: BROKEN: fileList.json in cache is per project not per Channel as should be
-      // TODO: make fileList.json per Channel and think about if we have to do the same for the asset files as well!!!
-      // CONTINUE HERE: put into helper function!
       // mark as up-to-date if channel has .lastmodified and up to date with client's cached fileList of channel
       if(channel.lastmodified !== undefined && channel.lastmodified !== null){
+        markButtonIfUpToDate(button,project,channel);
+      }
+
+      function markButtonIfUpToDate(button,project,channel){
         console.log(`channel ${channel.label} has lastmodified flag:`, channel.lastmodified, "will check local cached fileList.json");
         openTheater.getFileListFromCache(project.projectPath, channel.channelId).then((res)=>{
           // get latest lastmodified from FileList // CONTINUE HERE: error catching and helper functions
@@ -255,7 +256,7 @@ async function initUserFlow() {
 
   if (!projects || projects === null || projects === undefined){
     alert("could not access projects from repository. Please restart the app.");
-    throw `could not access projects from returned projectList. Probably malformed response from services.json`
+    throw `could not access projects from returned projectList. Probably malformed response from projectList.json`
   }
   console.log("awaiting showProjects with param", projects);
 
@@ -303,9 +304,6 @@ async function initChannel(project,channel){
   if (!fileList || fileList === null || fileList === undefined){
     return showUpdateOptionToUserOrUpdateAutomatically(null,project,channel); 
   }
-
-// CONTINUE HERE
-// TODO: make into OpenTheater.compareFileList helper functions
 
   const updateList = openTheater.getFileListDiff(lastFileList,fileList);
 

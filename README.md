@@ -15,6 +15,10 @@ started with code donated by:
 
 <a href="https://www.panthea.com/">panthea.com</a>
 
+## API documentation
+
+The software in this repository is the demo software presenting the (mainly) JSON and HTTP API defined and described at
+
 ____
 
 ## Repository Structure
@@ -27,7 +31,7 @@ To work with CapacitorJS we use `www/` as our base directory.
 
 The App can be used in 3 ways:
 
-1) as a WebApp to be run in the browser
+1) as a WebApp to be run in the browser (ATTENTION: broken atm for all things provisioning for large file chaching on disk not possible in the browser, plan is to keep it this way and make trigger Client work in web midterm.)
 2) as an App wrapped with CapacitorJS for iOS
 3) as an App wrapped with CapacitorJS for Android
 
@@ -74,7 +78,7 @@ npx cap add android;
 npx cap open;
 ```
 
-this will create the Android Studio (needs to be installed) and XCode (needs to be installed) projects and opens them.
+this will create and open the Android Studio (needs to be installed) and XCode (needs to be installed) projects.
 
 `npm run build` will internally not just do the webpack build, but also call `npx update` which will keep the Android Studio and XCode Projects up-to-date with all changes made inside the javascript and HTML files
 
