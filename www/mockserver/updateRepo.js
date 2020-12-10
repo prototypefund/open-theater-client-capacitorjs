@@ -5,6 +5,7 @@
 
  TODO: 
  - add further checks into repository to e.g. clean out or mark unreachable or malformed provisioningServers.
+ - delete files, how to check for that?
  */
 
 const fs = require("fs");
@@ -43,7 +44,7 @@ fs.promises.readFile(repoFilePath,{encoding:"utf-8"})
                     console.log("UPDATE!!!!",file.lastmodified);
                     // update projectListObj
                     projectListObj.projects[i].channelList[j].lastmodified = file.lastmodified;
-                    needsUpdate = true;   
+                    needsUpdate = true;
                 }
             }
             

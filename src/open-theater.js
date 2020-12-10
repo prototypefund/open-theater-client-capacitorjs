@@ -212,7 +212,7 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
     }
 
   // actual serverConnection/search:
-    console.log("fetching projects from", endpoint.serveruri)
+    console.log("fetching projects from", endpoint.serveruri);
     let projects = await fetch(endpoint.serveruri,{cache: "no-store"}).then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}

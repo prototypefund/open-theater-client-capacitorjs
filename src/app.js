@@ -171,7 +171,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
   Promise.all(fetchPromises)
   .then(async (resArray)=>{
     console.log("download attempts done",resArray); 
-    // TODO: check for NON 200 responses and react to failed Downloads
+    
     resArray.forEach((res)=>{
       console.log("res",res);
     })
