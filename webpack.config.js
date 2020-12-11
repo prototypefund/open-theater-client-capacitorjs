@@ -10,11 +10,16 @@ module.exports = {
   watch: true,
   plugins: [
     new WebpackShellPluginNext({
-      onBuildStart:{
+      onBeforeBuild: {
+        scripts: ['echo "Webpack WATCH"','npx cap copy'],
+        blocking: true,
+        parallel: false
+      },
+      /*onBuildStart:{
         scripts: ['echo "Webpack Start"','npx cap copy'],
         blocking: true,
         parallel: false
-      }, 
+      },*/ 
       onBuildEnd:{
         scripts: ['echo "Webpack End"'],
         blocking: false,

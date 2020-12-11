@@ -167,7 +167,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
     })
     fetchPromises.push(fetchProm);
   }
-
+ 
   Promise.all(fetchPromises)
   .then(async (resArray)=>{
     console.log("download attempts done",resArray); 
