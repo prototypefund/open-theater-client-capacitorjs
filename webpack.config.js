@@ -15,11 +15,11 @@ module.exports = {
         blocking: true,
         parallel: false
       },
-      /*onBuildStart:{
+      onBuildStart:{
         scripts: ['echo "Webpack Start"','npx cap copy'],
         blocking: true,
         parallel: false
-      },*/ 
+      }, 
       onBuildEnd:{
         scripts: ['echo "Webpack End"'],
         blocking: false,

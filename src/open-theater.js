@@ -339,7 +339,11 @@ async function getProvisioningFilesFromProject(channel){
 }
 
 // TODO: compare filebyfile instead complete list
-// TODO: Merge old fileList.json with new fileList.json on update
+/**
+ * 
+ * @param {array} projectPath - Array of strings defining the path of the project's root asset directory
+ * @param {string} channelId - defines the name of this channel's subdirectory in the projects cache
+ */
 async function getFileListFromCache(projectPath, channelId){
   console.log(`getFileListFromCache got ${projectPath}`);
   

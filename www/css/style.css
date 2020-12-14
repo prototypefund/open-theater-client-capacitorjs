@@ -20,10 +20,19 @@
 }
 
 .readyToTrigger::after{
-    content: "START";
+    content: "100%";
     white-space: pre;
     font-size: 0.6em;
     position: absolute;
     right: 10px;
     color: red;
+}
+
+.project h5{
+    word-break: break-all;
+}
+
+.startbtn {
+    background-color: blueviolet !important;
+    margin-top: 0.5rem;
 }

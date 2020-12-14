@@ -5,7 +5,7 @@ nothing to do with the API nor the runtime environment of this app:
 */
 
 // TODO:
-//    - https://www.npmjs.com/package/fetch-progress
+//    - implement https://www.npmjs.com/package/fetch-progress or native fetch byte counting.
 //    - hand data over to trigger api and show triggerMode UI
 
 import * as openTheater from "./open-theater.js";
@@ -48,7 +48,7 @@ async function showProjectsToUser(projects) {
     // create channelList DIV
     const projectTitle = project.projectPath.join(":<br>");
     const dom_projectDiv = htmlToElem(
-      `<div class="project">
+      `<div class="project" id="project_${project.projectPath.join("_")}">
         <hr>
         <h5>${projectTitle}</h5>
       </div>
@@ -334,15 +334,31 @@ document.addEventListener("provisioningDone",function(e) {
 
 async function activateTriggerModeForProjectButton(detail){
   console.log("activateTriggerModeForProjectButton",detail);
-  let button = document.getElementById(detail.chosenChannel.provisioningUri);
+  let projectId = "project_"+detail.project.projectPath.join("_");
+  console.log("############### PROJECT ID is:", projectId);
+  
+  let button = document.getElementById(detail.chosenChannel.provisioningUri); // CONTINUE HERE: make new project unique button and attach new clickListener to it. keep the css classes tho to mark the channels that will be included
+  let startbuttonName = `startbtn_${detail.projectId}`;
+  let startbutton = document.getElementById(startbuttonName);
+  if (startbutton === null){
+    startbutton = htmlToElem(
+      `<div style="margin:5px">
+        <button id="${startbuttonName}" class="startbtn btn-provisioning btn-large waves-effect waves-light">
+          <h5>START</h5>
+        </button>
+      </div>
+      ` 
+    );
+    document.getElementById(projectId).appendChild(startbutton);
+    startbutton.addEventListener("click",()=>{
+      enterTriggerMode(detail.chosenChannel,detail.project.projectPath)
+    })
+  }
   button.classList.add("readyToTrigger");
-  button.addEventListener("click",()=>{
-    enterTriggerMode(detail.chosenChannel,detail.project.projectPath)
-  })
 }
 
 
-// CONTINUE HERE
+// NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
 async function enterTriggerMode(project, projectPath)
 {
