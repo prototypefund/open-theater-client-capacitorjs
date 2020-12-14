@@ -225,9 +225,17 @@ function mergeProvisioningUriWithfilepath(provisioningUri,filepath){
 
 window.openTheater = openTheater;
 
+// init sidebar materialize.css
+
+document.addEventListener('DOMContentLoaded', function() {
+  M.AutoInit();
+  console.log("----- INIT M ----");
+  
+});
+
+
 /////////////////////////////////////
 ///////////// MAIN FLOW /////////////
-/////// to be read top to bottom ////
 initUserFlow();
 
 // 1. find servers & connect to one
@@ -327,8 +335,6 @@ document.addEventListener("provisioningDone",function(e) {
   
   activateTriggerModeForProjectButton(e.detail); 
 
-  //enterTriggerMode(e.detail.chosenProject, e.detail.channelList.projectPath) // NEXT
-
 },{ once: false }) // once per channel
 
 
@@ -337,7 +343,7 @@ async function activateTriggerModeForProjectButton(detail){
   let projectId = "project_"+detail.project.projectPath.join("_");
   console.log("############### PROJECT ID is:", projectId);
   
-  let button = document.getElementById(detail.chosenChannel.provisioningUri); // CONTINUE HERE: make new project unique button and attach new clickListener to it. keep the css classes tho to mark the channels that will be included
+  let button = document.getElementById(detail.chosenChannel.provisioningUri); 
   let startbuttonName = `startbtn_${detail.projectId}`;
   let startbutton = document.getElementById(startbuttonName);
   if (startbutton === null){

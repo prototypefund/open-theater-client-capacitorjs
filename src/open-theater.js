@@ -46,7 +46,7 @@ async function createDir(dirpath){
         let ret = await Filesystem.mkdir({
         path: dirpath,
         directory: FilesystemDirectory.Data,
-        recursive: false // like mkdir -p
+        recursive: false
         });
         return ret
     } catch(e) {

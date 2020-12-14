@@ -18,7 +18,7 @@
           "channelType": "video",
           "label": "DE Sign",
           "channelId": "DE_Sign",
-          "lastmodified": 1603717835598
+          "lastmodified": 16037178356002
         },
         {
           "triggerUri": "https://foo.bar",
@@ -26,7 +26,7 @@
           "channelType": "video",
           "label": "EN Sign",
           "channelId": "EN_Sign",
-          "lastmodified": 16037178357001
+          "lastmodified": 16037178357021
         }
       ]
     },
