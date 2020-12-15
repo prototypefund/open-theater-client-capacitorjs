@@ -79,8 +79,7 @@ async function fileWrite(filepath, content) {
         path: path.join(MEDIA_BASE_PATH, filepath),
         directory: FilesystemDirectory.Data,
 
-        // data must be a Blob (creating a Blob which wraps other data types
-        // is trivial)
+        // data must be a Blob
         data: content,
 
         // create intermediate directories if they don't already exist
@@ -88,8 +87,6 @@ async function fileWrite(filepath, content) {
         recursive: true,
 
         // fallback to Filesystem.writeFile instead of throwing an error
-        // (you may also specify a unary callback, which takes an Error and returns
-        // a boolean)
         // default: true
         fallback: (err) => {
           console.error(err)

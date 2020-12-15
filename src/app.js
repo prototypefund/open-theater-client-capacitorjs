@@ -48,7 +48,8 @@ async function showProjectsToUser(projects) {
     // create channelList DIV
     const projectTitle = project.projectPath.join(":<br>");
     const dom_projectDiv = htmlToElem(
-      `<div class="project" id="project_${project.projectPath.join("_")}">
+      `
+      <div class="project" id="project_${project.projectPath.join("_")}">
         <hr>
         <h5>${projectTitle}</h5>
       </div>
