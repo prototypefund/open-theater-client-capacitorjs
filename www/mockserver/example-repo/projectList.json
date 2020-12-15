@@ -18,7 +18,7 @@
           "channelType": "video",
           "label": "DE Sign",
           "channelId": "DE_Sign",
-          "lastmodified": 16037178356002
+          "lastmodified": 16037178386002
         },
         {
           "triggerUri": "https://foo.bar",
@@ -26,7 +26,7 @@
           "channelType": "video",
           "label": "EN Sign",
           "channelId": "EN_Sign",
-          "lastmodified": 16037178357021
+          "lastmodified": 16037178358023
         }
       ]
     },
@@ -36,7 +36,7 @@
         "Kammerspiele",
         "Shakespears anderes Stück"
       ],
-      "triggerUri":"https://foo.bar/project2",
+      "triggerUri": "https://foo.bar/project2",
       "channelList": [
         {
           "triggerUri": "wss://foo.bar/project2/channelDE/",

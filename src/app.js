@@ -12,6 +12,8 @@ import * as openTheater from "./open-theater.js";
 import path from 'path-browserify';
 import "lodash"; // can be used as _ // TODO: import only used code
 
+import fetchProgress from 'fetch-progress';
+
 const TESTCONFIG = [  // REPOLIST
   { ssid: "open.theater", 
     pw: "live1234",
@@ -137,7 +139,11 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
   
   let fetchPromises = [];
   // TODO: make fancier by using total bytes instead of num of files...
+  const totalBytes = updateList.map((file)=>{return file.filesize}).reduce((last, current)=>{return last + current});
+  console.log("total Bytes to download:", totalBytes); // TODO: use this with fetch progress or sth.
+  
   const progressPerFile = 100/updateList.length; 
+  
 
   for (const file of updateList){
     
@@ -146,6 +152,27 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
     console.log("downloading ",newpath);
     
     const fetchProm = fetch(newpath)
+    .then(
+      fetchProgress({
+        // implement onProgress method
+        onProgress(progress) {
+          console.log({ progress });
+          // TODO: implement animation here and count files below // CONTINUE HERE
+          // A possible progress report you will get
+          // {
+          //    total: 3333,
+          //    transferred: 3333,
+          //    speed: 3333,
+          //    eta: 33,
+          //    percentage: 33
+          //    remaining: 3333,
+          // }
+        },
+        onError(err) {
+          console.log(err);
+        }
+      })
+    )
     .then((res)=>{
       if (res.status === 200){
         return res.blob();

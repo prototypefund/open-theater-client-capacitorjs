@@ -1,8 +1,8 @@
 {
     "files":[
-        { "filepath": "1.mp4", "filesize": 12, "lastmodified": 16037178357021 },
-        { "filepath": "2.mp4", "filesize": 64, "lastmodified": 16037178356002 },
-        { "filepath": "3.mp4", "filesize": 64, "lastmodified": 16037178356002 },
-        { "filepath": "4.mp4", "filesize": 64, "lastmodified": 16037178357004 }
+        { "filepath": "1.mp4", "filesize": 3100000, "lastmodified": 16037178358023 },
+        { "filepath": "2.mp4", "filesize": 2100000, "lastmodified": 16037178358004 },
+        { "filepath": "3.mp4", "filesize": 2100000, "lastmodified": 16037178358005 },
+        { "filepath": "4.mp4", "filesize": 2100000, "lastmodified": 16037178358006 }
     ]
 }
