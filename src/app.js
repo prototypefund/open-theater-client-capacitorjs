@@ -141,7 +141,8 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
   // TODO: make fancier by using total bytes instead of num of files...
   const totalBytes = updateList.map((file)=>{return file.filesize}).reduce((last, current)=>{return last + current});
   console.log("total Bytes to download:", totalBytes); // TODO: use this with fetch progress or sth.
-  
+  let downloadedBytes = 0;
+
   const progressPerFile = 100/updateList.length; 
   
 
@@ -149,24 +150,27 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
     
     const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
 
-    console.log("downloading ",newpath);
+    console.log("downloading ::",newpath);
     
+    let fileBytesDownloadedSoFar = 0;
+
     const fetchProm = fetch(newpath)
     .then(
       fetchProgress({
         // implement onProgress method
-        onProgress(progress) {
-          console.log({ progress });
+        onProgress(prog) {
+          let fileprogress = prog;
+          //console.log("progress:",fileprogress);
           // TODO: implement animation here and count files below // CONTINUE HERE
-          // A possible progress report you will get
-          // {
-          //    total: 3333,
-          //    transferred: 3333,
-          //    speed: 3333,
-          //    eta: 33,
-          //    percentage: 33
-          //    remaining: 3333,
-          // }
+          // add to progressbar
+          downloadedBytes = downloadedBytes + (fileprogress.transferred - fileBytesDownloadedSoFar);
+          fileBytesDownloadedSoFar = fileprogress.transferred;
+          progress = 100/totalBytes*downloadedBytes;
+          progressbar.set(progress);
+          console.log(file.filepath," ••• ",
+          "total progress:",progress, "downloadedBytes:",downloadedBytes, "from ",totalBytes,
+          "file size total:", fileprogress.total
+          );
         },
         onError(err) {
           console.log(err);
@@ -187,9 +191,11 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
       }
     })
     .then((blob)=>{
+      /*
       // add to progressbar
       progress = progress + progressPerFile;
       progressbar.set(progress);
+      */
       // write to Disk / Cache
       return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelId,file.filepath),blob); 
     })

@@ -1,5 +1,5 @@
 const path = require('path');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
+const WebpackShellPlugin = require('webpack-shell-plugin');
 
 module.exports = {
   entry: './src/app.js',
@@ -8,23 +8,10 @@ module.exports = {
     path: path.resolve(__dirname, 'www'),
   },
   watch: true,
-  plugins: [
-    new WebpackShellPluginNext({
-      onBeforeBuild: {
-        scripts: ['echo "Webpack WATCH"','npx cap copy'],
-        blocking: true,
-        parallel: false
-      },
-      onBuildStart:{
-        scripts: ['echo "Webpack Start"','npx cap copy'],
-        blocking: true,
-        parallel: false
-      }, 
-      onBuildEnd:{
-        scripts: ['echo "Webpack End"'],
-        blocking: false,
-        parallel: true
-      }
+  plugins:[
+    new WebpackShellPlugin({
+      onBuildEnd: ['echo BUILDSTART','npx cap copy'],
+      dev:false
     })
   ]
 };
