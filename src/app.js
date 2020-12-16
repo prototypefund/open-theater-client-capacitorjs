@@ -127,10 +127,8 @@ function htmlToElem(html) {
 
 
 
-async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel){
+function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel){
   console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
-
-  // TODO: implement multifile fetch-promise with counter
 
   let progressbar = bar(channel.provisioningUri);
   let progress = 0;
@@ -138,19 +136,16 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
   console.log(`files to download for ${channel.label}`, updateList);
   
   let fetchPromises = [];
-  // TODO: make fancier by using total bytes instead of num of files...
-  const totalBytes = updateList.map((file)=>{return file.filesize}).reduce((last, current)=>{return last + current});
-  console.log("total Bytes to download:", totalBytes); // TODO: use this with fetch progress or sth.
-  let downloadedBytes = 0;
 
-  const progressPerFile = 100/updateList.length; 
-  
+  const totalBytes = updateList.map((file)=>{return file.filesize}).reduce((last, current)=>{return last + current});
+  console.log("total Bytes to download:", totalBytes);
+  let downloadedBytes = 0;
 
   for (const file of updateList){
     
     const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
 
-    console.log("downloading ::",newpath);
+    console.log(" start downloading ::",newpath);
     
     let fileBytesDownloadedSoFar = 0;
 
@@ -160,17 +155,11 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
         // implement onProgress method
         onProgress(prog) {
           let fileprogress = prog;
-          //console.log("progress:",fileprogress);
-          // TODO: implement animation here and count files below // CONTINUE HERE
           // add to progressbar
           downloadedBytes = downloadedBytes + (fileprogress.transferred - fileBytesDownloadedSoFar);
           fileBytesDownloadedSoFar = fileprogress.transferred;
           progress = 100/totalBytes*downloadedBytes;
           progressbar.set(progress);
-          console.log(file.filepath," ••• ",
-          "total progress:",progress, "downloadedBytes:",downloadedBytes, "from ",totalBytes,
-          "file size total:", fileprogress.total
-          );
         },
         onError(err) {
           console.log(err);
@@ -191,11 +180,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
       }
     })
     .then((blob)=>{
-      /*
-      // add to progressbar
-      progress = progress + progressPerFile;
-      progressbar.set(progress);
-      */
+      // TODO: here add filecount to progressbar
       // write to Disk / Cache
       return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelId,file.filepath),blob); 
     })
@@ -223,7 +208,7 @@ async function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,ch
     const oldFileList = JSON.parse(oldFileListFile.data);
     console.log("oldFileList is",oldFileList, "updateList is", updateList);
     
-    let newFileList = oldFileList; // CONTINUE HERE: test
+    let newFileList = oldFileList;
     newFileList.files = _.unionBy(updateList, oldFileList.files,"filepath");
     console.log("newFileList:", newFileList);
     
