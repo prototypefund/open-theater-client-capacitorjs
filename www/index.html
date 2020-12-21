@@ -16,27 +16,27 @@
 </head>
 <body>
 
-    
-    <nav class="teal lighten-2" style="position: fixed; top:0px"> 
+    <nav class="teal lighten-2" style="position: fixed; top:0px; z-index: 99;"> 
         <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a> 
         <!-- navbar content  -->
-        <div style="position: absolute; width: 100%;" style="color: black;"><h5 class="center">]OPEN THEATER[</h5></div>
+        <div  style="position: absolute; width: 100%;" style="color: black;"><h5 class="center">]OPEN THEATER[</h5></div>
     </nav>
     <ul id="slide-out" class="sidenav">
-      <li> &nbsp; ]OPEN THEATER[</li>
+      <li><div class="center">]OPEN THEATER[</div></li>
+      <li><a class="page-btn waves-effect" page-name="projectList">SHOWS</a></li>
       <li><div class="divider"></div></li>
       <li><a class="subheader">APP DATA & INFO</a></li>
-      <li><a href="#!">MEDIA (downloaded)</a></li>
-      <li><a href="#!">ABOUT</a></li>
+      <li><a class="page-btn waves-effect" page-name="media">MEDIA</a></li>
+      <li><a class="page-btn waves-effect">ABOUT</a></li>
       <li><div class="divider"></div></li>
       <li><a class="subheader">CONFIG</a></li>
-      <li><a class="waves-effect" href="#!">MY REPOSITORIES</a></li>
+      <li><a class="page-btn waves-effect">REPOSITORIES</a></li>
     </ul>
           
 
     <div id="app" style="margin-top: 68px;">
 
-        <div id="projectList" class="center" style="display: flex; flex-direction: column;">
+        <div id="projectList" class="center page" style="display: flex; flex-direction: column;">
             <!--<h4 class="center">]OPEN THEATER[</h4>-->
             <br>
             <div id="projectListButtons" style="display: flex; flex-direction: column;">
@@ -44,8 +44,15 @@
             </div>
         </div>
 
-    </div>
+        <div id="media" style="position: fixed; background-color: white; top:68px;
+        height: 100%;width: 100%;" class="center page hidden" style="display: flex; flex-direction: column;">
+            <h5>DOWNLOADED MEDIA FILES</h5>
+            <ol id="mediaList">
+                <!-- will be populated with media files listed by app.js -->
+            </ol>
+        </div>
 
+    </div>
 
 </body>
 

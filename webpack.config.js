@@ -10,8 +10,9 @@ module.exports = {
   watch: true,
   plugins:[
     new WebpackShellPlugin({
-      onBuildEnd: ['echo BUILDSTART','npx cap copy'],
-      dev:false
+      onBuildStart: ['npx cap open ios'],
+      onBuildExit: ['echo BUILDSTART','npx cap copy'],
+      dev:true
     })
   ]
 };

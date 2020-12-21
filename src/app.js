@@ -141,8 +141,8 @@ function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel)
   console.log("total Bytes to download:", totalBytes);
   let downloadedBytes = 0;
 
-  for (const file of updateList){
-    
+  for (let i in updateList){
+    let file = updateList[i]
     const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
 
     console.log(" start downloading ::",newpath);
@@ -189,7 +189,7 @@ function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel)
  
   Promise.all(fetchPromises)
   .then(async (resArray)=>{
-    console.log("download attempts done",resArray); 
+    console.log("download attempts done",resArray);
     
     resArray.forEach((res)=>{
       console.log("res",res);
@@ -212,7 +212,6 @@ function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel)
     newFileList.files = _.unionBy(updateList, oldFileList.files,"filepath");
     console.log("newFileList:", newFileList);
     
-
     openTheater.fileWrite(fileListPathCache,JSON.stringify(newFileList))
     .then((res)=>{console.log("wrote fileList to device",res);
     })
@@ -241,6 +240,36 @@ function mergeProvisioningUriWithfilepath(provisioningUri,filepath){
     return url.toString()
   }
 }
+
+// add listener for sidebar menu
+function showPage(id){
+  console.log("looking for ",id);
+  
+  document.getElementById(id).classList.remove("hidden");
+}
+
+document.querySelectorAll(".page-btn").forEach((btn)=>{
+  const pageName = btn.getAttribute("page-name");
+  console.log(btn, pageName);
+  
+  btn.addEventListener("click",()=>{
+
+    // hide all pages
+    document.querySelectorAll(".page").forEach((element)=>{
+      console.log("hiding",element);
+      
+      element.classList.add("hidden");
+    })
+
+    // show this page
+    showPage(pageName);
+
+    // close sidenav
+    const sidenav = document.querySelector('.sidenav');
+    M.Sidenav.getInstance(sidenav).close();
+  })
+})
+
 
 window.openTheater = openTheater;
 
