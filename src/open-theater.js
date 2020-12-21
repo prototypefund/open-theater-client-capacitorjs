@@ -40,6 +40,16 @@ function getPlatform(){
   return Capacitor.getPlatform();
 }
 
+function hideStatusBar(){
+  const { StatusBar } = Plugins;
+  return StatusBar.hide();
+}
+
+function showStatusBar(){
+  const { StatusBar } = Plugins;
+  return StatusBar.show();
+}
+
 async function createDir(dirpath){
     
     try {
@@ -440,7 +450,9 @@ function getFileListDiff(oldFileList,newFileList){
 
 export { 
   helloWorld,
-  getPlatform, 
+  getPlatform,
+  hideStatusBar,
+  showStatusBar,
   getWifiSsid, 
   getBattery, 
   detectServer, 

@@ -5,7 +5,6 @@ nothing to do with the API nor the runtime environment of this app:
 */
 
 // TODO:
-//    - implement https://www.npmjs.com/package/fetch-progress or native fetch byte counting.
 //    - hand data over to trigger api and show triggerMode UI
 
 import * as openTheater from "./open-theater.js";
@@ -27,13 +26,15 @@ const TESTCONFIG = [  // REPOLIST
   },
 ];
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
-const DOM_PROJECTLIST = document.querySelector('#projectList')
-
+const DOM_PROJECTLIST = document.querySelector('#projectList');
+const DOM_MEDIALIST = document.querySelector("#mediaList");
 
 //////////////////////////////////////////////////////////////////
  
 
 console.log("loaded", openTheater);
+
+openTheater.hideStatusBar();
 
 openTheater.getWifiSsid().then((res)=>{
   console.log(`wifi/network info: ${JSON.stringify(res)}`)
@@ -243,35 +244,105 @@ function mergeProvisioningUriWithfilepath(provisioningUri,filepath){
 
 // add listener for sidebar menu
 function showPage(id){
-  console.log("looking for ",id);
-  
   document.getElementById(id).classList.remove("hidden");
+
+  if (id === "media"){
+    initMediaList();
+  }
 }
 
 document.querySelectorAll(".page-btn").forEach((btn)=>{
   const pageName = btn.getAttribute("page-name");
-  console.log(btn, pageName);
-  
   btn.addEventListener("click",()=>{
-
     // hide all pages
     document.querySelectorAll(".page").forEach((element)=>{
       console.log("hiding",element);
-      
       element.classList.add("hidden");
     })
-
     // show this page
     showPage(pageName);
-
     // close sidenav
     const sidenav = document.querySelector('.sidenav');
     M.Sidenav.getInstance(sidenav).close();
   })
 })
 
+function initMediaList(){
+  console.log("initMediaList");
+  
+  DOM_MEDIALIST.innerHTML = "";
+  openTheater.readDir("")
+  .then((res)=>{
+    console.log("initMediaList",res);
+    if (res.files !== null && res.files !== undefined){
+      res.files.forEach(async (projectDir)=>{
+        const projectRes = await openTheater.readDir(projectDir);
+        console.log("initMediaList projectRes",projectRes);
+        if (projectRes.files !== null && projectRes.files !== undefined){
+          DOM_MEDIALIST.appendChild(htmlToElem(
+            `
+            <li class="collection-item">
+              ${projectDir}
+            </li>
+            `
+          ))
+          console.log("initMediaList projectRes.files",projectRes.files);
+          projectRes.files.forEach(async(channelDir)=>{
+            const channelRes = await openTheater.readDir(path.join(projectDir,channelDir));
+            console.log("initMediaList channelRes.files",channelRes.files);
+            if (channelRes.files !== null && channelRes.files !== undefined){
+              DOM_MEDIALIST.appendChild(htmlToElem(
+                `
+                <li class="collection-item avatar">
+                  <i class="material-icons circle">folder</i>
+                  <span class="title">${channelDir}</span>
+                  <a onclick="deleteAssetFile('${path.join("media",projectDir,channelDir)}')" class="secondary-content">
+                  <i class="material-icons">delete_forever</i></a>
+                </li>  
+                `
+              ))
+              channelRes.files.forEach((file)=>{
+                DOM_MEDIALIST.appendChild(htmlToElem(
+                  `
+                  <li class="collection-item avatar">
+                    <i class="material-icons circle">insert_drive_file</i>
+                    <span class="title">${file}</span>
+                    <p>File
+                    </p>
+                  </li>
+                  `
+                ))
+              })
+            }            
+          })
+        }
+      })
+    }
+  })
+  
+}
+
+function deleteAssetFile(path){
+  console.log("deleting ",path);
+  
+  openTheater.deleteFile(path)
+  .then((res)=>{
+    console.log(res);
+    //alert("deleted");
+    initMediaList();
+    initUserFlow();
+    // TODO: update SHOW listing
+  })
+  .catch((err)=>{
+    console.log(err);
+    alert("could not delete file")
+  })
+}
+
 
 window.openTheater = openTheater;
+window.deleteAssetFile = deleteAssetFile;
+window.initMediaList = initMediaList;
 
 // init sidebar materialize.css
 
@@ -284,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /////////////////////////////////////
 ///////////// MAIN FLOW /////////////
+DOM_PROJECTLIST.classList.remove("hidden");
 initUserFlow();
 
 // 1. find servers & connect to one
@@ -293,7 +365,6 @@ async function initUserFlow() {
   await openTheater.initMediaRootDir();
 
   DOM_PROJECTLISTBUTTONS.innerHTML = "";
-  DOM_PROJECTLIST.classList.remove("hidden");
 
   // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
   // 2) searches REPOLIST for PROJECTLIST
@@ -378,9 +449,9 @@ async function initChannel(project,channel){
   }
 }
 
-document.addEventListener("provisioningDone",function(e) { 
+document.addEventListener("provisioningDone",function(e) {
   console.log("provisioningDone eventListener triggered:",e);
-  
+
   activateTriggerModeForProjectButton(e.detail); 
 
 },{ once: false }) // once per channel
