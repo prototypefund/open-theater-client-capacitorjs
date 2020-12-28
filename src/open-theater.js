@@ -50,6 +50,13 @@ function showStatusBar(){
   return StatusBar.show();
 }
 
+async function showToast(content){
+  const { Toast } = Plugins;
+  await Toast.show({
+    text:content
+  })
+}
+
 async function createDir(dirpath){
     
     try {
@@ -453,6 +460,7 @@ export {
   getPlatform,
   hideStatusBar,
   showStatusBar,
+  showToast,
   getWifiSsid, 
   getBattery, 
   detectServer, 

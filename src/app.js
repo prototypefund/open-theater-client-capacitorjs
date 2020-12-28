@@ -328,10 +328,9 @@ function deleteAssetFile(path){
   openTheater.deleteFile(path)
   .then((res)=>{
     console.log(res);
-    //alert("deleted");
     initMediaList();
     initUserFlow();
-    // TODO: update SHOW listing
+    openTheater.showToast(`deleted ${path}`)
   })
   .catch((err)=>{
     console.log(err);
