@@ -15,7 +15,7 @@ import fetchProgress from 'fetch-progress';
 
 const TESTCONFIG = [  // REPOLIST
   { ssid: "open.theater", 
-    pw: "live1234",
+    //pw: "live1234",
     serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
   },
   {
@@ -319,7 +319,7 @@ function initMediaList(){
       })
     }
   })
-  
+
 }
 
 function deleteAssetFile(path){

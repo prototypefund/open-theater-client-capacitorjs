@@ -1,0 +1,57 @@
+{
+  "projects": [
+    {
+      "projectPath": [
+        "MY_INDEPENDENT_EXAMPLE_PIECE"
+      ],
+      "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
+      "COMMENT": "{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
+      "channelList": [
+        {
+          "triggerUri": "wss://foo.bar/channel",
+          "channelType": "text",
+          "label": "DE Read",
+          "channelId": "DE_Untertitel"
+        },
+        {
+          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/DE_SIGN/",
+          "channelType": "video",
+          "label": "DE Sign",
+          "channelId": "DE_Sign",
+          "lastmodified": 16037178386002
+        },
+        {
+          "triggerUri": "https://foo.bar",
+          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/EN_SIGN/",
+          "channelType": "video",
+          "label": "EN Sign",
+          "channelId": "EN_Sign",
+          "lastmodified": 16037178358023
+        }
+      ]
+    },
+    {
+      "projectPath": [
+        "Staatstheater_Mannheim",
+        "Kammerspiele",
+        "Shakespears_anderes_Stueck"
+      ],
+      "triggerUri": "https://foo.bar/project2",
+      "channelList": [
+        {
+          "triggerUri": "wss://foo.bar/project2/channelDE/",
+          "provisioningUri": "https://open-theater.de/example-repo/staatstheater_mannheim/kammerspiele/shakespears_anderes_stueck/DE_UNTERTITEL",
+          "channelType": "text",
+          "label": "DE Untertitel",
+          "channelId": "DE_Untertitel"
+        },
+        {
+          "provisioningUri": "https://open-theater.de/example-repo/staatstheater_mannheim/kammerspiele/shakespears_anderes_stueck/EN_UNTERTITEL",
+          "channelType": "video",
+          "label": "EN Subtitles",
+          "channelId": "EN_Untertitel"
+        }
+      ]
+    }
+  ]
+}
