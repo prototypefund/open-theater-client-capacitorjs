@@ -1,0 +1,7 @@
+.box-wrapper {
+    position: relative;
+}
+
+.box {
+    position: fixed;
+}
