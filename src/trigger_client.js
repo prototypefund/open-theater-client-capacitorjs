@@ -1,22 +1,24 @@
 
     import * as openTheater from "./open-theater.js";
+    import path from 'path-browserify';
 
     console.log("loaded openTheater.js",openTheater);
     
 
     let context = null;
     try{
-        let context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
+        context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-
-        if (!context.channelId || !context.projectUUID || !context.repository){
+        if (!context.channelUuid || !context.projectUuid || !context.repository){
             throw("data JSON handed over from provisioning URI broken")
         }
         console.log(context);
     
         console.log("repository:", context.repository);
-        console.log("channel:",context.channelId);
-        console.log("projectUUID:", context.projectUUID);
+        console.log("channel:",context.channelUuid);
+        console.log("projectUuid:", context.projectUuid);
+
+        main(context);
 
     }
     catch{
@@ -25,34 +27,65 @@
     }
 
     function getGetParam(name) {
+
         let result = null;
-        let store = [];
-        location.search.substr(1).split("&")
-        .forEach(function (item) {
-            store = item.split("=");
-            if (store[0] === name) {
-                result = decodeURIComponent(store[1]);
-            }
-        });
+        const urlParams = new URLSearchParams(document.location.search);
+        result = urlParams.get(name);
         return result;
     }
 
-    // CONTINUE HERE: Pull Project data and channel data from Disk and repository server
+    
 
 
 
-    const socket = io('https://trigger.open-theater.de', {
+async function main(context){
+
+
+    // Pull Project data and channel data from Disk and repository server
+
+    const repo = await (await fetch(context.repository)).json()
+    .catch((err)=>{
+        console.error(err);
+        alert("error fetching projectList.json from repository. will reload.");
+        window.location = "./index.html";
+    });
+    const project = repo.projects.find((r)=>{return r.projectUuid === context.projectUuid});
+
+    const selectedChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
+
+
+    // CONTINUE HERE: get all preselected Channels
+
+    clientApp(project,selectedChannel);
+
+
+}
+
+
+
+
+
+
+function clientApp(project,selectedChannel) {
+
+    console.log("project",project);
+    console.log("selectedChannel",selectedChannel);
+
+
+    const triggerEndpoint = project.triggerUri;
+    if (selectedChannel.triggerEndpoint) {
+        triggerEndpoint = selectedChannel.triggerUri;
+    }
+
+    
+    // actual app
+
+    const socket = io(triggerEndpoint, {
         transport : ['websocket']
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        renderMSelect();
-    });
 
-    function renderMSelect(){
-        let elems = document.querySelectorAll('select');
-        let instances = M.FormSelect.init(elems);
-    }
+
 
     function getRenderer(uri,callback) {
 
@@ -85,7 +118,7 @@
 
     // this would come in from the provisioning API before DOM is built
     // channelList keys
-    const preselectedChannels = [
+    const preselectedChannelsOld = [
 
         {
             "keys": ["text_de", "image_icon"],
@@ -102,13 +135,33 @@
             "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
             "label": "Multimedia Präsentation DE" // mandatory (humans need this)
         }
-    
+
     ]
 
 
+    const preselectedChannels = []
+    for(let channel of project.channelList) {
+
+        preselectedChannels.push({
+            "keys": channel.containerIds,
+            "label": channel.label
+        })
+    }
+
+    preselectedChannels.push({
+        "renderer": "customRenderer.html",
+        "rendererJS": "customRenderer.js",
+        "rendererCSS": "customRenderer.css",
+        "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
+        "label": "Multimedia Präsentation DE" // mandatory (humans need this)
+    });
+
+
+    console.log('preselectedChannels',preselectedChannels);
+    console.log('preselectedChannelsOld',preselectedChannelsOld);
 
     let choosenChannel = preselectedChannels[0];
-    buildDefaultRenderer();
+    buildDefaultContainer();
 
 
     // build menu here
@@ -120,6 +173,19 @@
         .join("\n")
     }
     </select>`
+
+    renderMSelect();
+
+
+        
+    function renderMSelect(){
+        let elems = document.querySelectorAll('select');
+        let instances = M.FormSelect.init(elems);
+        console.log("MSelect:",instances);
+        
+    }
+
+
 
     function switchChannel(selectObject) {
         choosenChannel = preselectedChannels[selectObject.value];
@@ -134,17 +200,16 @@
             });
         }
         else {
-            buildDefaultRenderer();
+            buildDefaultContainer();
             displayContentDefault(lastTriggerObj);
         }
 
         
     }
+    window.switchChannel = switchChannel;
 
 
-
-
-    function buildDefaultRenderer() {
+    function buildDefaultContainer() {
 
         document.getElementById("opentheaterapp").innerHTML = `
         ${choosenChannel.keys.map((key) => {
@@ -152,7 +217,7 @@
 
                 if (key.startsWith("text_")) {
                     return `<div id="${key}" class="ot_default draggable">
-                                <div>here shall be stuff</div>
+                                <div>placeholder</div>
                             </div>`
                 }
                 else if (key.startsWith("image_")) {
@@ -162,7 +227,7 @@
                 }
                 else if (key.startsWith("video_")) {
                     return `<div id="${key}" class="ot_default draggable">
-                                <video style="width:300px"  alt="" src="" autoplay muted></video>
+                                <video style="width:300px"  alt="" src="" autoplay muted playsinline></video>
                             </div>`
                 }
                 else if (key.startsWith("audio_")) {
@@ -205,8 +270,8 @@
         let parent = document.getElementById(selector);
 
         // TODO MAKE NICER AND CHECK IF DIV EXISTS
-        let children = parent.getElementsByTagName('div');
-        let e = children[0];
+        let children = parent.children;
+        let firstchild  = children[0];
 
 
         // make sure you do not already have clone
@@ -218,10 +283,10 @@
         }
         
         // remove animate classes form original
-        removeAllAnimateClasses(e);
+        removeAllAnimateClasses(firstchild);
 
         // create clone  true = deepClone
-        let clone = e.cloneNode(true);
+        let clone = firstchild.cloneNode(true);
 
         if(clone.id) {
             // append id with  -clone
@@ -263,7 +328,7 @@
             // bug as animationend is already triggerd after cloning is perfomed
             // not triggered first time as no animate__animated is present
             console.log('animationend', element, ' isClone', isClone, ' ::: animationDone', animationDone);
-                  
+                    
             
             if(isClone) {
                 console.log('animation done clone')
@@ -293,7 +358,7 @@
         let parent = document.getElementById(elementId);
 
         if(parent) {
-    
+
             // remove original element            
             let originals = parent.querySelectorAll(':not([data-isclone])');
             let clones = parent.querySelectorAll('[data-isclone]');
@@ -334,7 +399,9 @@
                         clone.innerText = payload.content[contentBlockId];
 
                     } else if (contentBlockId.startsWith("image_")) {
-                        blockElement.setAttribute("src", payload.content[contentBlockId]);
+                        let clone = await cloneItem(blockElement.id);
+                        console.log(clone);
+                        clone.setAttribute("src", payload.content[contentBlockId]);                        
                     }
                     else if (contentBlockId.startsWith("video_")) {
                         blockElement.setAttribute("src", payload.content[contentBlockId]);
@@ -411,7 +478,7 @@
 
                             console.log('transitionSelectorParent', transitionSelectorParent);
 
-                            let transitionSelectorChildren = transitionSelectorParent.getElementsByTagName('div');
+                            let transitionSelectorChildren = transitionSelectorParent.children;
 
                             for (let transitionSelectorDOM of transitionSelectorChildren) {
 
@@ -482,7 +549,7 @@
                 }                
 
             }
-   
+
         }
 
 
@@ -499,7 +566,7 @@
 
 
 
- 
+
 
     ////////////////////////
     // Helper functions UI
@@ -578,7 +645,7 @@
                 y2 = e.clientY;
             }
 
-            console.log("dragged to",x,y,x2,y2);
+           // console.log("dragged to",x,y,x2,y2);
             
             element.style.top = (element.offsetTop - y) + "px";
             element.style.left = (element.offsetLeft - x) + "px";
@@ -586,4 +653,6 @@
 
     }
 
-// */
+  
+}
+//*/

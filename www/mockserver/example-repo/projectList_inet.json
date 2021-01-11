@@ -1,17 +1,19 @@
 {
   "projects": [
     {
+      "projectUUID": "09a7506a-d399-4d42-983f-47a12e028586",
       "projectPath": [
         "MY_INDEPENDENT_EXAMPLE_PIECE"
       ],
-      "triggerUri": "mqtt://foo.bar/service?token={{OPENTHEATER_APP_ID}}",
+      "triggerUri": "https://trigger.open-theater.de",
       "COMMENT": "{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
       "channelList": [
         {
-          "triggerUri": "wss://foo.bar/channel",
+          "triggerUri": "https://trigger.open-theater.de",
           "channelType": "text",
           "label": "DE Read",
-          "channelId": "DE_Untertitel"
+          "channelId": "DE_Untertitel",
+          "channelTypes":["text"]
         },
         {
           "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/DE_SIGN/",
@@ -21,7 +23,7 @@
           "lastmodified": 16037178386002
         },
         {
-          "triggerUri": "https://foo.bar",
+          "triggerUri": "https://trigger.open-theater.de",
           "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/EN_SIGN/",
           "channelType": "video",
           "label": "EN Sign",
@@ -31,6 +33,7 @@
       ]
     },
     {
+      "projectUUID": "ff277516-121b-4304-b256-d5a8b70e136a",
       "projectPath": [
         "Staatstheater_Mannheim",
         "Kammerspiele",

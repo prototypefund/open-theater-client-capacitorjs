@@ -363,14 +363,14 @@ async function getProvisioningFilesFromProject(channel){
 /**
  * 
  * @param {array} projectPath - Array of strings defining the path of the project's root asset directory
- * @param {string} channelId - defines the name of this channel's subdirectory in the projects cache
+ * @param {string} channelUuid - defines the name of this channel's subdirectory in the projects cache
  */
-async function getFileListFromCache(projectPath, channelId){
+async function getFileListFromCache(projectPath, channelUuid){
   console.log(`getFileListFromCache got ${projectPath}`);
   
-    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"), channelId); // CONTINUE HERE
+    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"), channelUuid); // CONTINUE HERE
     
-    const file = await readFile(path.join(projectPath.join("/"),channelId,"fileList.json"))
+    const file = await readFile(path.join(projectPath.join("/"),channelUuid,"fileList.json"))
       .catch((err)=>{throw {message:"getFileListFromCache could not find projects fileList.json",stack:err}})
     
     console.log("file is", file);

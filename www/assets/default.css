@@ -1,7 +1,8 @@
-.box-wrapper {
-    position: relative;
-}
-
-.box {
+.ot_default > div,
+.ot_default > img,
+.ot_default > video,
+.ot_default > audio {
     position: fixed;
+    margin: 0;
+    padding: 0;
 }

@@ -14,10 +14,10 @@ import "lodash"; // can be used as _ // TODO: import only used code
 import fetchProgress from 'fetch-progress';
 
 const TESTCONFIG = [  // REPOLIST
-  { ssid: "open.theater", 
+  /*{ ssid: "open.theater", 
     //pw: "live1234",
     serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?"
-  },
+  },*/
   {
     serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json"
   },
@@ -80,7 +80,7 @@ async function showProjectsToUser(projects) {
 
       function markButtonIfUpToDate(button,project,channel){
         console.log(`channel ${channel.label} has lastmodified flag:`, channel.lastmodified, "will check local cached fileList.json");
-        openTheater.getFileListFromCache(project.projectPath, channel.channelId).then((res)=>{
+        openTheater.getFileListFromCache(project.projectPath, channel.channelUuid).then((res)=>{
           // get latest lastmodified from FileList // CONTINUE HERE: error catching and helper functions
           let lastmodified = 0;
           for (const file of res.files){
@@ -184,7 +184,7 @@ function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel)
     .then((blob)=>{
       // TODO: here add filecount to progressbar
       // write to Disk / Cache
-      return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelId,file.filepath),blob); 
+      return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelUuid,file.filepath),blob); 
     })
     fetchPromises.push(fetchProm);
   }
@@ -197,7 +197,7 @@ function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel)
       console.log("res",res);
     })
     // write new FileList.json into Cache
-    const fileListPathCache = path.join(project.projectPath.join("/"),channel.channelId,"fileList.json");
+    const fileListPathCache = path.join(project.projectPath.join("/"),channel.channelUuid,"fileList.json");
 
     const oldFileListFile = await openTheater.readFile(fileListPathCache)
     .catch(
@@ -425,7 +425,7 @@ async function initChannel(project,channel){
   }); // check provisioning API for new content
   console.log("initChannel has now fileList", fileList);
 
-  const lastFileList = await openTheater.getFileListFromCache(project.projectPath, channel.channelId)
+  const lastFileList = await openTheater.getFileListFromCache(project.projectPath, channel.channelUuid)
   .catch(async (err)=>{
     console.log("dir or file of filelist.json does not exist. gonna have to download everything...",err);
     return null
@@ -479,7 +479,7 @@ async function activateTriggerModeForProjectButton(detail){
     );
     document.getElementById(projectId).appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelId,detail.project.projectUUID)
+      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelUuid,detail.project.projectUuid)
     })
   }
   button.classList.add("readyToTrigger");
@@ -488,12 +488,16 @@ async function activateTriggerModeForProjectButton(detail){
 
 // NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(repositoryUri,channelId, projectUUID)
+async function enterTriggerMode(repositoryUri,channelUuid, projectUuid)
 {
-  console.log("enterTriggerMode",repositoryUri, channelId, projectUUID);
+  console.log("enterTriggerMode",repositoryUri, channelUuid, projectUuid);
 
-  let data = {repository:repositoryUri, projectUUID:projectUUID, channelId:channelId}
-  window.location ="./client.html?data="+encodeURI(JSON.stringify(data));
+  let data = JSON.stringify({
+    repository:repositoryUri,
+    projectUuid:projectUuid,
+    channelUuid:channelUuid
+  });
+  window.location ="./client.html?data="+encodeURI(data);
   
 }
 
