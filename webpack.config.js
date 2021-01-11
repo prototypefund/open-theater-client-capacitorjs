@@ -2,9 +2,12 @@ const path = require('path');
 const WebpackShellPlugin = require('webpack-shell-plugin');
 
 module.exports = {
-  entry: './src/app.js',
+  entry: {
+    app:'./src/app.js',
+    trigger_client:'./src/trigger_client.js'
+},
   output: {
-    filename: 'app.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'www'),
   },
   watch: true,

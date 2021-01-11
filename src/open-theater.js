@@ -203,8 +203,9 @@ function getBattery(){
  * tries to connect to wifi with config.ssid if possible
  * then tries to connect to serveruri in whichever network is available
  * reports back
+ * @example [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]
  */
-async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]*/){
+async function detectServer(config,timeout = 8000){
   
   for (let endpoint of config){
 
@@ -227,7 +228,13 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
 
   // actual serverConnection/search:
     console.log("fetching projects from", endpoint.serveruri);
-    let projects = await fetch(endpoint.serveruri,{cache: "no-store"}).then(async (res)=>{
+    let projects = await Promise.race([
+        fetch(endpoint.serveruri,{cache: "no-store"}),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), timeout)
+        )
+    ])
+    .then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
     )
@@ -245,7 +252,7 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
         continue;
     }
 
-    return projects
+    return {repository:endpoint.serveruri,projectList:projects}
   }
 
   console.log(`could not connect to any server listed in the repo list config`);

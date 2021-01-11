@@ -16,10 +16,10 @@ import fetchProgress from 'fetch-progress';
 const TESTCONFIG = [  // REPOLIST
   { ssid: "open.theater", 
     //pw: "live1234",
-    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?"
   },
   {
-    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?token={{OPENTHEATER_APP_ID}}"
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json"
   },
   {
     serveruri: "https://www.open-theater.de/example-repo/projectList.json"
@@ -29,6 +29,7 @@ const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
 const DOM_PROJECTLIST = document.querySelector('#projectList');
 const DOM_MEDIALIST = document.querySelector("#mediaList");
 
+let _repositoryUri = null;// global
 //////////////////////////////////////////////////////////////////
  
 
@@ -367,12 +368,15 @@ async function initUserFlow() {
 
   // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
   // 2) searches REPOLIST for PROJECTLIST
-  const projectList = await openTheater.detectServer(TESTCONFIG)
+  const {projectList, repository} = await openTheater.detectServer(TESTCONFIG);
   if (projectList == undefined || projectList == null){
     alert("could not fetch projectList from any of the Repo Servers."+ 
           "Please check if you are online and restart app.")
   }
   console.log(`found projectList:`,projectList);
+  // save in global scope:
+  _repositoryUri = repository;
+  console.log(`set _repositoryUri to`,repository);
 
   // 3) get projects from PROJECTLIST
   let projects = projectList.projects;
@@ -475,7 +479,7 @@ async function activateTriggerModeForProjectButton(detail){
     );
     document.getElementById(projectId).appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(detail.chosenChannel,detail.project.projectPath)
+      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelId,detail.project.projectUUID)
     })
   }
   button.classList.add("readyToTrigger");
@@ -484,9 +488,12 @@ async function activateTriggerModeForProjectButton(detail){
 
 // NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(project, projectPath)
+async function enterTriggerMode(repositoryUri,channelId, projectUUID)
 {
-  console.log("enterTriggerMode", project, projectPath);
+  console.log("enterTriggerMode",repositoryUri, channelId, projectUUID);
+
+  let data = {repository:repositoryUri, projectUUID:projectUUID, channelId:channelId}
+  window.location ="./client.html?data="+encodeURI(JSON.stringify(data));
   
 }
 
