@@ -1,5 +1,6 @@
 
     import * as openTheater from "./open-theater.js";
+    window.openTheater = openTheater;
     import path from 'path-browserify';
 
     console.log("loaded openTheater.js",openTheater);
@@ -51,12 +52,12 @@ async function main(context){
     });
     const project = repo.projects.find((r)=>{return r.projectUuid === context.projectUuid});
 
-    const selectedChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
+    const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
 
 
     // CONTINUE HERE: get all preselected Channels
 
-    clientApp(project,selectedChannel);
+    clientApp(project,startChannel);
 
 
 }
@@ -66,15 +67,15 @@ async function main(context){
 
 
 
-function clientApp(project,selectedChannel) {
+function clientApp(project,startChannel) {
 
     console.log("project",project);
-    console.log("selectedChannel",selectedChannel);
+    console.log("startChannel",startChannel);
 
 
     const triggerEndpoint = project.triggerUri;
-    if (selectedChannel.triggerEndpoint) {
-        triggerEndpoint = selectedChannel.triggerUri;
+    if (startChannel.triggerEndpoint) {
+        triggerEndpoint = startChannel.triggerUri;
     }
 
     
@@ -118,8 +119,27 @@ function clientApp(project,selectedChannel) {
 
     // this would come in from the provisioning API before DOM is built
     // channelList keys
-    const preselectedChannelsOld = [
 
+    let availableChannels = []
+    for(let channel of project.channelList) {
+
+        availableChannels.push({
+            "channelUuid": channel.channelUuid,
+            "keys": channel.containerIds,
+            "label": channel.label
+        })
+    }
+
+    availableChannels.push({
+        "channelUuid": "d2ec3720-e0d5-42d7-a59e-c7fbcbaf6e3c",
+        "renderer": "customRenderer.html",
+        "rendererJS": "customRenderer.js",
+        "rendererCSS": "customRenderer.css",
+        "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
+        "label": "Multimedia Präsentation DE" // mandatory (humans need this)
+    });
+
+    let availableChannelsOld = [
         {
             "keys": ["text_de", "image_icon"],
             "label": "Subtitles DE"
@@ -139,35 +159,18 @@ function clientApp(project,selectedChannel) {
     ]
 
 
-    const preselectedChannels = []
-    for(let channel of project.channelList) {
 
-        preselectedChannels.push({
-            "keys": channel.containerIds,
-            "label": channel.label
-        })
-    }
+    console.log('availableChannels',availableChannels);
+    console.log('availableChannelsOld',availableChannels);
 
-    preselectedChannels.push({
-        "renderer": "customRenderer.html",
-        "rendererJS": "customRenderer.js",
-        "rendererCSS": "customRenderer.css",
-        "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
-        "label": "Multimedia Präsentation DE" // mandatory (humans need this)
-    });
-
-
-    console.log('preselectedChannels',preselectedChannels);
-    console.log('preselectedChannelsOld',preselectedChannelsOld);
-
-    let choosenChannel = preselectedChannels[0];
+    let choosenChannel = availableChannels[0];
     buildDefaultContainer();
 
 
     // build menu here
     document.getElementById("menu").innerHTML = `<select id="channels" onchange="switchChannel(this)">
     ${
-        preselectedChannels.map((channelOption,channelIndex) => {
+        availableChannels.map((channelOption,channelIndex) => {
             return `<option value="${channelIndex}">${channelOption.label}</option>`
         })
         .join("\n")
@@ -188,7 +191,9 @@ function clientApp(project,selectedChannel) {
 
 
     function switchChannel(selectObject) {
-        choosenChannel = preselectedChannels[selectObject.value];
+        choosenChannel = availableChannels[selectObject.value];
+
+        console.log('choosenChannel',choosenChannel);
 
         if(choosenChannel.renderer) {
 
@@ -226,12 +231,12 @@ function clientApp(project,selectedChannel) {
                             </div>`
                 }
                 else if (key.startsWith("video_")) {
-                    return `<div id="${key}" class="ot_default draggable">
+                    return `<div id="${key}" class="draggable">
                                 <video style="width:300px"  alt="" src="" autoplay muted playsinline></video>
                             </div>`
                 }
                 else if (key.startsWith("audio_")) {
-                    return `<div id="${key}" class="ot_default draggable">
+                    return `<div id="${key}" class="draggable">
                                 <audio alt="" src="" autoplay ></audio>
                             </div>`
                 }
@@ -394,21 +399,48 @@ function clientApp(project,selectedChannel) {
                 const blockElement = document.getElementById(contentBlockId);
                 
                 if (blockElement) {
+
+                    let replaceContent = payload.content[contentBlockId];
+
+                    if (contentBlockId.startsWith("image_") || contentBlockId.startsWith("audio_") || contentBlockId.startsWith("video_")) {
+                        if(replaceContent.startsWith('http') === false) {
+                            // local file such as 1.mp4
+                            let capacitorAssetUriForChannel = await openTheater.getCapacitorAssetUriForChannel(project.projectPath,choosenChannel.channelUuid,replaceContent);                 
+                            if(capacitorAssetUriForChannel) {
+                                replaceContent = capacitorAssetUriForChannel; // 
+                            }
+                        }
+                    }
+
+
                     if (contentBlockId.startsWith("text_")) {                        
                         let clone = await cloneItem(blockElement.id);
-                        clone.innerText = payload.content[contentBlockId];
+                        clone.innerText = replaceContent;
 
                     } else if (contentBlockId.startsWith("image_")) {
-                        let clone = await cloneItem(blockElement.id);
-                        console.log(clone);
-                        clone.setAttribute("src", payload.content[contentBlockId]);                        
+                        let clone = await cloneItem(blockElement.id);                        
+                        clone.setAttribute("src", replaceContent);
+                        console.log(clone);                                   
+                    }
+                    else if (contentBlockId.startsWith("audio_")) {
+                        let audioElements = blockElement.children;
+                        if(audioElements && audioElements[0]) {
+                            
+                            audioElements[0].setAttribute("src", replaceContent);
+                            audioElements[0].play();                            
+                        }
                     }
                     else if (contentBlockId.startsWith("video_")) {
-                        blockElement.setAttribute("src", payload.content[contentBlockId]);
-                        blockElement.play();
+                        console.log('blockElement', blockElement);
+                        let videoElements = blockElement.children;
+                        console.log('videoElements', videoElements);
+                        if(videoElements && videoElements[0]) {
+                            videoElements[0].setAttribute("src", replaceContent);
+                            videoElements[0].play();
+                        }
                     } else if (contentBlockId.startsWith("html_")) {
                         // custom html
-                        blockElement.innerHTML = payload.content[contentBlockId];
+                        blockElement.innerHTML = replaceContent;
                     }
                 } else {
                     console.log(`${contentBlockId} content has no template block avaible to be rendered to`);
@@ -531,6 +563,8 @@ function clientApp(project,selectedChannel) {
                                     if(transitions.fadeOutClass !== 'animate__none') {
                                         if(transitionSelectorDOM.classList) {
                                             transitionSelectorDOM.classList.add('animate__animated', transitions.fadeOutClass)
+                                        } else {
+                                            console.log('COULD NOT ADD ANIMATE CLASS TO ', transitionSelectorDOM);
                                         }
                                     } else {
                                         removeCloneAndRename(transitionSelectorParent.id);

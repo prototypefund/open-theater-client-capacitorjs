@@ -157,15 +157,41 @@ async function deleteFile(path) {
 
   async function getFileStat(filepath,media_base_path = MEDIA_BASE_PATH) {
     try {
-      let ret = await Filesystem.stat({
+      let stat = await Filesystem.stat({
         path: path.join(media_base_path,filepath),
         directory: FilesystemDirectory.Data
       });
-      return ret
-    } catch(e) {
+
+      /*
+       * stat = { ctime: 000, mtime: 000, size: 000, type: "NSFileTypeRegular", uri: "file://xyz" }
+       * 
+       */
+      return stat
+    } catch(e) {      
       console.error(`openTheater.getFileStat: Unable to stat file ${filepath}`, e);
       return null
     }
+  }
+
+  //path.join(project.projectPath.join("/"),channel.channelUuid,file.filepath
+  // project.projectPath,selectedChannel.channelUuid,payloadSrc
+  async function getCapacitorAssetUriForChannel(projectPath,channelUuid,filename) {
+
+    let filepath = path.join(projectPath.join("/"),channelUuid,filename);
+    let stat = await getFileStat(filepath);
+    let capacitorUri = null;
+
+    console.log('projectPath',projectPath,'channelUuid',channelUuid,'filename',filename);
+    console.log('filepath',filepath);
+    console.log('!!!! stat', stat);
+
+    if(stat && stat.uri) {
+      capacitorUri = Capacitor.convertFileSrc(stat.uri);
+    }
+    console.log('capacitorUri', capacitorUri);
+
+    return capacitorUri
+    
   }
 
 
@@ -485,6 +511,7 @@ export {
   getFileListFromCache,
   initMediaRootDir,
   getFileListDiff,
+  getCapacitorAssetUriForChannel
   /*updateFiles,*/
 };
  
