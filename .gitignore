@@ -2,12 +2,8 @@ node_modules
 */node_modules
 *.DS_Store
 capacitor.config.json
-ios/*
-!ios/App/App/Assets.xcassets
-!ios/App/App/App.entitlements
-android/*
-!android/app/src/main/res/xml/network_security_config.xml
-!android/app/src/main/AndroidManifest.xml
+ios
+android
 .gradle
 .eslintrc.js
 *.mp4
