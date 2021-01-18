@@ -448,7 +448,9 @@ async function initChannel(project,channel){
     console.log("directory of filelist exists and did not change. ready to trigger now");
     console.log("will dispatch CustomEvent provisiongDone now");
     
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+    document.dispatchEvent(new CustomEvent('provisioningDone', 
+      {detail:{project: project, chosenChannel:channel}}
+    ))
   }
 }
 
@@ -459,9 +461,13 @@ document.addEventListener("provisioningDone",function(e) {
 
 },{ once: false }) // once per channel
 
+let _chosenChannels = [];
+window._chosenChannels = _chosenChannels;
 
 async function activateTriggerModeForProjectButton(detail){
+
   console.log("activateTriggerModeForProjectButton",detail);
+  _chosenChannels.push(detail.chosenChannel)
   let projectId = "project_"+detail.project.projectPath.join("_");
   console.log("############### PROJECT ID is:", projectId);
   
@@ -479,7 +485,7 @@ async function activateTriggerModeForProjectButton(detail){
     );
     document.getElementById(projectId).appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelUuid,detail.project.projectUuid)
+      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelUuid,detail.project.projectUuid,_chosenChannels)
     })
   }
   button.classList.add("readyToTrigger");
@@ -488,14 +494,15 @@ async function activateTriggerModeForProjectButton(detail){
 
 // NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(repositoryUri,channelUuid, projectUuid)
+async function enterTriggerMode(repositoryUri,channelUuid, projectUuid,chosenChannels)
 {
   console.log("enterTriggerMode",repositoryUri, channelUuid, projectUuid);
 
   let data = JSON.stringify({
     repository:repositoryUri,
     projectUuid:projectUuid,
-    channelUuid:channelUuid
+    channelUuid:channelUuid,
+    chosenChannels: chosenChannels
   });
   window.location ="./client.html?data="+encodeURI(data);
   

@@ -7,10 +7,11 @@
     
 
     let context = null;
+    window.context = context;
     try{
         context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-        if (!context.channelUuid || !context.projectUuid || !context.repository){
+        if (!context.channelUuid || !context.projectUuid || !context.repository || !context.chosenChannels){
             throw("data JSON handed over from provisioning URI broken")
         }
         console.log(context);
@@ -18,13 +19,14 @@
         console.log("repository:", context.repository);
         console.log("channel:",context.channelUuid);
         console.log("projectUuid:", context.projectUuid);
+        console.log("chosenChannels:", context.chosenChannels);
 
         main(context);
 
     }
     catch{
         alert("error, need channel and projectPath. Will go back to Provisioning.");
-        window.location = "./index.html";
+        //window.location = "./index.html";
     }
 
     function getGetParam(name) {
@@ -35,7 +37,7 @@
         return result;
     }
 
-    
+    window.getGetParam = getGetParam;
 
 
 
@@ -54,10 +56,9 @@ async function main(context){
 
     const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
 
+    const chosenChannels = context.chosenChannels;
 
-    // CONTINUE HERE: get all preselected Channels
-
-    clientApp(project,startChannel);
+    clientApp(project,startChannel,chosenChannels);
 
 
 }
@@ -67,7 +68,7 @@ async function main(context){
 
 
 
-function clientApp(project,startChannel) {
+function clientApp(project,startChannel,chosenChannels) {
 
     console.log("project",project);
     console.log("startChannel",startChannel);
@@ -121,7 +122,7 @@ function clientApp(project,startChannel) {
     // channelList keys
 
     let availableChannels = []
-    for(let channel of project.channelList) {
+    for(let channel of chosenChannels/*project.channelList*/) {
 
         availableChannels.push({
             "channelUuid": channel.channelUuid,
