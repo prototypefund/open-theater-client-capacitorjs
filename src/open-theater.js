@@ -13,9 +13,13 @@ overwritten in here manually or to be connected with the runtime APIs of our cho
 //import {updateFiles, setScreenBrightness} from './fullyApi.js'; // example of importing another API
 
 import { Plugins, FilesystemDirectory, FilesystemEncoding, Capacitor, Network } from '@capacitor/core';
+import { writeFile } from 'capacitor-blob-writer' // use module directly not `Plugins.BlobWriter`
+window.writeFile = writeFile;
+window.FilesystemDirectory = FilesystemDirectory;
 import path from 'path-browserify';
 
 const { Filesystem } = Plugins;
+
 
 const MEDIA_BASE_PATH = "/media";
 
@@ -23,50 +27,43 @@ const PLATFORM_IS_WEB =  (getPlatform() === "web");
 const PLATFORM_IS_ANDROID = (getPlatform() === "android");
 const PLATFORM_IS_IOS = (getPlatform() === "ios");
 
-/*
-const replaceURLStrings = [{
-  "{{OPENTHEATER_APP_ID}}": openTheater.deviceId(),
-  "{{OPENTHEATER_API_VERSION}}": openTheater.version
-}]
+/* 
+TODO:
+Downloading Assets: 
+- fix on pwa 
+- if works adapt into opentheater.helperfunctions as read and download
+- find fixes for loading times of videos (preloading in trigger might be needed to bridge this)
 */
-
-function modifyURLString(input){
-  
-  return input;
-  
-  // TODO: Kristian
-    /*
-    let triggerURL = new URL(services.triggerUri); 
-          
-    if(triggerURL.protocol == "wss:") {} // see getServiceProtocol() below, maybe it can shorten this part?
-    if(triggerURL.protocol == "ws:") {}
-
-    if(triggerURL.protocol == "mqtt:") {}
-
-    if(triggerURL.protocol == "http:") {}
-    if(triggerURL.protocol == "https:") {}
-
-    triggerURL.searchParams.get('token');
-    triggerURL.search == "?token={{OPENTHEATER_APP_ID}}"
-
-    triggerURL.toString()
-    */
-
-  
-}
 
 
 function getPlatform(){
   return Capacitor.getPlatform();
 }
 
-async function createDir(path){
+function hideStatusBar(){
+  const { StatusBar } = Plugins;
+  return StatusBar.hide();
+}
+
+function showStatusBar(){
+  const { StatusBar } = Plugins;
+  return StatusBar.show();
+}
+
+async function showToast(content){
+  const { Toast } = Plugins;
+  await Toast.show({
+    text:content
+  })
+}
+
+async function createDir(dirpath){
     
     try {
         let ret = await Filesystem.mkdir({
-        path: path,
-        directory: FilesystemDirectory.Documents,
-        recursive: false // like mkdir -p
+        path: dirpath,
+        directory: FilesystemDirectory.Data,
+        recursive: false
         });
         return ret
     } catch(e) {
@@ -76,27 +73,54 @@ async function createDir(path){
     
 }
 
-async function readDir(path){
+async function readDir(dirpath){
+    console.log(`openTheater.readDir got ${dirpath}`);
+    
     try {
         let ret = await Filesystem.readdir({
-          path: path,
-          directory: FilesystemDirectory.Documents
+          path: path.join(MEDIA_BASE_PATH,dirpath),
+          directory: FilesystemDirectory.Data
         });
         return ret
       } catch(e) {
-        console.error('Unable to read dir', e);
+        console.error('OpenTheater.readDir: Unable to read dir', e);
         return null
       }
 }
 
+// TODO: catch if running in web, then use different methods for caching or at least dont attempt using blob-writing
 async function fileWrite(filepath, content) {
     try {
-      const result = await Filesystem.writeFile({
-        path: filepath,
+      const result = await writeFile({
+                
+        path: path.join(MEDIA_BASE_PATH, filepath),
+        directory: FilesystemDirectory.Data,
+
+        // data must be a Blob
         data: content,
-        directory: FilesystemDirectory.Documents,
-        encoding: FilesystemEncoding.UTF8
+
+        // create intermediate directories if they don't already exist
+        // default: false
+        recursive: true,
+
+        // fallback to Filesystem.writeFile instead of throwing an error
+        // default: true
+        fallback: (err) => {
+          console.error(err)
+        }
       })
+      /* await writeFile({
+        path: path.join(MEDIA_BASE_PATH, filepath),
+        recursive: true,
+        data: content, 
+        // because we use diachedelic's capacitor-blob-writer (writeFile instead of Filesystem.writeFile): 
+        // data must be a Blob 
+        directory: FilesystemDirectory.Data,
+        fallback:function(err){
+          console.error(err)
+          throw(err)
+        }
+      })*/
       console.log('Wrote file', result);
       return result
     } catch(e) {
@@ -105,36 +129,69 @@ async function fileWrite(filepath, content) {
     }
 }
 
-async function readFile(filepath){
+async function readFile(filepath, media_base_path = MEDIA_BASE_PATH){
+    console.log("openTheater.readFile got", filepath);
+    
     let contents = await Filesystem.readFile({
-        path: filepath,
-        directory: FilesystemDirectory.Documents,
+        path: path.join(media_base_path,filepath),
+        directory: FilesystemDirectory.Data,
         encoding: FilesystemEncoding.UTF8
+      })
+      .catch((err)=>{
+        console.log("openTheater.readFile got an error",err);
+        
+        throw err
       });
-    console.log(contents);
+    //console.log(contents);
     return contents
 }
 
 async function deleteFile(path) {
     await Filesystem.deleteFile({
       path: path,
-      directory: FilesystemDirectory.Documents
+      directory: FilesystemDirectory.Data
     });
     console.log("file delete was forwarded to system");
     return true
   }
 
-  async function getFileStat(path) {
+  async function getFileStat(filepath,media_base_path = MEDIA_BASE_PATH) {
     try {
-      let ret = await Filesystem.stat({
-        path: path,
-        directory: FilesystemDirectory.Documents
+      let stat = await Filesystem.stat({
+        path: path.join(media_base_path,filepath),
+        directory: FilesystemDirectory.Data
       });
-      return ret
-    } catch(e) {
-      console.error('Unable to stat file', e);
+
+      /*
+       * stat = { ctime: 000, mtime: 000, size: 000, type: "NSFileTypeRegular", uri: "file://xyz" }
+       * 
+       */
+      return stat
+    } catch(e) {      
+      console.error(`openTheater.getFileStat: Unable to stat file ${filepath}`, e);
       return null
     }
+  }
+
+  //path.join(project.projectPath.join("/"),channel.channelUuid,file.filepath
+  // project.projectPath,selectedChannel.channelUuid,payloadSrc
+  async function getCapacitorAssetUriForChannel(projectPath,channelUuid,filename) {
+
+    let filepath = path.join(projectPath.join("/"),channelUuid,filename);
+    let stat = await getFileStat(filepath);
+    let capacitorUri = null;
+
+    console.log('projectPath',projectPath,'channelUuid',channelUuid,'filename',filename);
+    console.log('filepath',filepath);
+    console.log('!!!! stat', stat);
+
+    if(stat && stat.uri) {
+      capacitorUri = Capacitor.convertFileSrc(stat.uri);
+    }
+    console.log('capacitorUri', capacitorUri);
+
+    return capacitorUri
+    
   }
 
 
@@ -172,8 +229,9 @@ function getBattery(){
  * tries to connect to wifi with config.ssid if possible
  * then tries to connect to serveruri in whichever network is available
  * reports back
+ * @example [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]
  */
-async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serveruri: SERVER_URI} ]*/){
+async function detectServer(config,timeout = 8000){
   
   for (let endpoint of config){
 
@@ -195,21 +253,32 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
     }
 
   // actual serverConnection/search:
-    console.log("fetching services from", endpoint.serveruri)
-    let services = await fetch(endpoint.serveruri).then(async (res)=>{
+    console.log("fetching projects from", endpoint.serveruri);
+    let projects = await Promise.race([
+        fetch(endpoint.serveruri,{cache: "no-store"}),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), timeout)
+        )
+    ])
+    .then(async (res)=>{
       console.log("got response from",endpoint.serveruri)
       return await res.json()}
-    );
-    console.log(services);
+    )
+    .catch((err)=>{
+      console.error(`openTheater.detectServer could not fetch from endpoint.serveruri 
+      ${endpoint.serveruri}`,err);
+      return null
+    });
+    console.log(projects);
 
-    if (!services){
+    if (!projects){
       console.log(`
-        could not connect to server ${endpoint.serceruri}. 
+        could not connect to server ${endpoint.serveruri}. 
         will try next repo server in config...`);        
         continue;
     }
 
-    return services
+    return {repository:endpoint.serveruri,projectList:projects}
   }
 
   console.log(`could not connect to any server listed in the repo list config`);
@@ -218,17 +287,6 @@ async function detectServer(config /*= [ {ssid: SEARCH_SSID, pw: SEARCH_PW, serv
 
 }
 
-/**
- * 
- * @param {String} serviceUri 
- * checks serviceUri for its file list and compares with files on the device storage
- * updates the files in device storage to be in sync with files provided by serviceUri
- */
-async function updateFiles(config) { // config obj: { urls:[] , updateObj: null}
-    for (fileuri in config.uris){
-        // download all files to device storage and report back
-    }
-}
 
 /**
  * 
@@ -287,7 +345,7 @@ function setScreenBrightness(level)
             }
         );
 
-    })   
+    })
 }
 
 function getServiceProtocol(service){
@@ -306,44 +364,67 @@ function getServiceProtocol(service){
   }
 }
 
-// CONTINUE HERE
-async function getProvisioningFilesFromService(service){
-  if(!service.provisioningUri || typeof service.provisioningUri !== "string"){
-    throw "getProvisioningFilesFromService requires service obj to contain provisioningUri (string)"
+async function getProvisioningFilesFromProject(channel){
+  
+  if(!channel.provisioningUri || typeof channel.provisioningUri !== "string"){
+    throw "getProvisioningFilesFromProject requires Project obj to contain provisioningUri (string)"
   }
 
-  const listOfAssetFilesResponse = await fetch(service.provisioningUri);
+  let url = new URL(channel.provisioningUri);
+  url.pathname = path.join(url.pathname,"fileList.json");
+  url = url.toString();
+
+  const listOfAssetFilesResponse = await fetch(url,{cache: "no-store"});
   if (!listOfAssetFilesResponse.ok){
-    throw "getProvisioningFilesFromService encountered an error communicating with provisioning server"
+    throw "getProvisioningFilesFromProject encountered an error communicating with provisioning server"
   }
   const listOfAssetFiles = await listOfAssetFilesResponse.json()
-  .catch((err)=>{ throw {message:"getProvisioningFilesFromService got falsy response from provisioning server",error:err}});
+  .catch((err)=>{ throw {message:"getProvisioningFilesFromProject got falsy response from provisioning server",error:err}});
   console.log("listOfAssetFiles:",listOfAssetFiles);
   
   return listOfAssetFiles
 }
 
-
-// TODO: return fileList from Cache in the same structure as we expect it from the provising servers
-
-async function getFileListFromCache(projectPath){
-    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"));
+// TODO: compare filebyfile instead complete list
+/**
+ * 
+ * @param {array} projectPath - Array of strings defining the path of the project's root asset directory
+ * @param {string} channelUuid - defines the name of this channel's subdirectory in the projects cache
+ */
+async function getFileListFromCache(projectPath, channelUuid){
+  console.log(`getFileListFromCache got ${projectPath}`);
+  
+    const projectsAssetDir = path.join(MEDIA_BASE_PATH,projectPath.join("/"), channelUuid); // CONTINUE HERE
     
-    const fileList = await readDir(projectsAssetDir)
-    .catch((err)=>{throw "getFileListFromCache could not find project Dir"})
+    const file = await readFile(path.join(projectPath.join("/"),channelUuid,"fileList.json"))
+      .catch((err)=>{throw {message:"getFileListFromCache could not find projects fileList.json",stack:err}})
+    
+    console.log("file is", file);
+    
+    const fileList = JSON.parse(file.data);
 
-    const fileListFormatted = await Promise.all(
-      fileList.files.map(async (filename) =>{
-        const filestats = await getFileStat(path.join(projectsAssetDir,filename));
-        const lastmodified = filestats.mtime;
-        const filesize = filestats.size;
+    console.log("fileList is", fileList);
+    
+    let output = fileList;
 
-        return {filepath:filename, filesize: filesize, lastmodified: lastmodified}
-      })
-    )
+    if (!fileList || fileList === null || fileList === undefined){
+        console.error(`getFileListFromCache could not find 
+        ${path.join(projectPath.join("/"),"fileList.json")}`)
+        const fileList = await readDir(projectPath.join("/")) // fallback if no fileList.json present
 
-    const output = {
-      files: fileListFormatted
+        const fileListFormatted = await Promise.all(
+          fileList.files.map(async (filename) =>{
+            const filestats = await getFileStat(path.join(projectsAssetDir,filename),"");
+            const lastmodified = filestats.mtime;
+            const filesize = filestats.size;
+    
+            return {filepath:filename, filesize: filesize, lastmodified: lastmodified}
+          })
+        )
+    
+        output = {
+          files: fileListFormatted
+        }
     }
 
     return output
@@ -356,7 +437,7 @@ async function getFileListFromCache(projectPath){
  * checks if MEDIA_BASE_PATH exists as directory, and creates it if not
  */
 async function initMediaRootDir(){
-  const dir = await readDir(MEDIA_BASE_PATH)
+  const dir = await readDir("/")
   if (dir !== null)
   {
     console.log("Open Theater media root directory was initialized: directory already exists"); 
@@ -371,25 +452,66 @@ async function initMediaRootDir(){
   }
 }
 
+/**
+ * compares to fileListObjects and returns an array of files to be updated
+ * depending on whether the files are either newer or unknown to the cache 
+ * object (oldFileList)
+ * 
+ * @param {object} oldFileList - the fileList.json object from Cache
+ * @param {object} newFileList - the fileList.json object from the provisioningserver
+ */
+function getFileListDiff(oldFileList,newFileList){
+
+  if (oldFileList === null || oldFileList === undefined){
+    return newFileList.files
+  }
+  let nonmatching = [];
+
+  for (const newfile of newFileList.files){
+    // if newfile.filepath is not to be found at all in oldFileList:
+    if (!oldFileList.files.some((oldfile)=>{return oldfile.filepath === newfile.filepath})){
+      nonmatching.push(newfile);
+    }
+    // if newfile.filepath matches a file in oldfiles but its timestamp is newer:
+    else if (oldFileList.files.some(
+        (oldfile)=>{
+          console.log(oldfile,"is older than", 
+            newfile, ((oldfile.filepath === newfile.filepath) && (oldfile.lastmodified < newfile.lastmodified)))
+          return ((oldfile.filepath === newfile.filepath) && (oldfile.lastmodified < newfile.lastmodified))
+        })
+    ){
+      nonmatching.push(newfile);
+    }
+  }
+  
+  console.log("openTheater.getFileListDiff nonmatching:",nonmatching);
+  return nonmatching
+}
+
 export { 
   helloWorld,
-  getPlatform, 
+  getPlatform,
+  hideStatusBar,
+  showStatusBar,
+  showToast,
   getWifiSsid, 
   getBattery, 
   detectServer, 
   setScreenBrightness, 
   connectToSSID, 
   scanSSIDs,
-  readFile, 
+  readFile,
   createDir, 
   readDir, 
   fileWrite, 
   deleteFile, 
   getFileStat,
   getServiceProtocol,
-  getProvisioningFilesFromService,
+  getProvisioningFilesFromProject,
   getFileListFromCache,
   initMediaRootDir,
+  getFileListDiff,
+  getCapacitorAssetUriForChannel
   /*updateFiles,*/
 };
  

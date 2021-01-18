@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx webpack; npx cap sync;",
-    "dev": "npx webpack --watch --progress;"
+    "build": "npx webpack; npx cap sync; npx cap copy;",
+    "dev": "npx webpack --watch --progress;",
+    "mockserver": "cd www/mockserver/; nodemon updateRepo.js;"
   },
   "repository": {
     "type": "git",
@@ -27,13 +28,17 @@
     "@capacitor/cli": "^2.4.0",
     "@capacitor/core": "^2.4.0",
     "@capacitor/ios": "^2.4.0",
+    "capacitor-blob-writer": "^0.1.10",
     "cordova-plugin-brightness": "^0.2.0",
     "es6-promise-plugin": "^4.2.2",
     "eslint": "^7.10.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
+    "fetch-progress": "^1.3.0",
+    "lodash": "^4.17.20",
     "path-browserify": "^1.0.1",
     "vue": "^2.6.12",
+    "webpack-shell-plugin": "^0.5.0",
     "wifiwizard2": "^3.1.1"
   }
 }

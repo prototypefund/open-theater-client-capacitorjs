@@ -5,3 +5,34 @@
 .serviceGroup h5{
     color: #004d40 
 }
+
+.btn-provisioning{
+    width: 80%;
+}
+
+.up-to-date-filelist button{
+    background-color: yellowgreen;
+}
+
+.readyToTrigger{
+    background-color: green !important;
+    color:white
+}
+
+.readyToTrigger::after{
+    content: "100%";
+    white-space: pre;
+    font-size: 0.6em;
+    position: absolute;
+    right: 10px;
+    color: red;
+}
+
+.project h5{
+    word-break: break-all;
+}
+
+.startbtn {
+    background-color: blueviolet !important;
+    margin-top: 0.5rem;
+}

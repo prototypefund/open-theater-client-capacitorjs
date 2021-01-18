@@ -6,33 +6,58 @@
     <link href="css/icon.css" rel="stylesheet">
     <!--Import materialize.css-->
     <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+    <script src="/js/materialize.min.js"></script>
+
     <link type="text/css" rel="stylesheet" href="css/style.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="css/progress-bar.css"  media="screen,projection"/>
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>]OPEN THEATER[ Demo Client App</title>
 </head>
 <body>
 
-    CHECK YOU CONSOLE LOG!
+    <nav class="teal lighten-2" style="position: fixed; top:0px; z-index: 99;"> 
+        <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a> 
+        <!-- navbar content  -->
+        <div  style="position: absolute; width: 100%;" style="color: black;"><h5 class="center">]OPEN THEATER[</h5></div>
+    </nav>
+    <ul id="slide-out" class="sidenav">
+      <li><div class="center">]OPEN THEATER[</div></li>
+      <li><a class="page-btn waves-effect" page-name="projectList">SHOWS</a></li>
+      <li><div class="divider"></div></li>
+      <li><a class="subheader">APP DATA & INFO</a></li>
+      <li><a class="page-btn waves-effect" page-name="media">MEDIA</a></li>
+      <li><a class="page-btn waves-effect">ABOUT</a></li>
+      <li><div class="divider"></div></li>
+      <li><a class="subheader">CONFIG</a></li>
+      <li><a class="page-btn waves-effect">REPOSITORIES</a></li>
+    </ul>
+          
 
+    <div id="app" style="margin-top: 68px;">
 
-    <div id="app">
-
-        <div id="serviceList" class="center" style="display: flex; flex-direction: column;">
-            <h4 class="center">]OPEN THEATER[ </h4>
-            <h5 class="center">found the following services:</h5>
+        <div id="projectList" class="center page" style="display: flex; flex-direction: column;">
+            <!--<h4 class="center">]OPEN THEATER[</h4>-->
             <br>
-            <div id="serviceListButtons" style="display: flex; flex-direction: column;">
+            <div id="projectListButtons" style="display: flex; flex-direction: column;">
                  <!-- app.js will inject buttons here -->
             </div>
         </div>
 
+        <div id="media" style="position: absolute; background-color: white; top:68px;
+        min-height: 100%;width: 100%;" class="center page hidden collection" style="display: flex; flex-direction: column;">
+            <h5>DOWNLOADED MEDIA FILES</h5>
+            <ul id="mediaList">
+                <!-- will be populated with media files listed by app.js -->
+            </ul>
+        </div>
+
     </div>
-
-
 
 </body>
 
-<script src="app.js" type="module"></script>
+<script src="./js/progress-bar.js"></script>
+<script src="./app.js" type="module"></script>
+
 
 </html>

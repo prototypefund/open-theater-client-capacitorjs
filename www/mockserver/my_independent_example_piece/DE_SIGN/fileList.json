@@ -1,6 +1,8 @@
 {
     "files":[
-        { "filepath": "1.mov", "filesize": 12, "lastmodified": 1603717814163 },
-        { "filepath": "2.mov", "filesize": 64, "lastmodified": 1603717835595 }
+        { "filepath": "1.mp4", "filesize": 3100000, "lastmodified": 1603717818163 },
+        { "filepath": "2.mp4", "filesize": 2100000, "lastmodified": 1603717838598 },
+        { "filepath": "3.mp4", "filesize": 2100000, "lastmodified": 16037178386002 },
+        { "filepath": "4.mp4", "filesize": 2100000, "lastmodified": 16037178386002 }
     ]
 }

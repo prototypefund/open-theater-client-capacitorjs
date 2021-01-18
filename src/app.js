@@ -5,103 +5,357 @@ nothing to do with the API nor the runtime environment of this app:
 */
 
 // TODO:
-//    - correct all 
-//    - https://www.npmjs.com/package/fetch-progress
+//    - hand data over to trigger api and show triggerMode UI
 
 import * as openTheater from "./open-theater.js";
+import path from 'path-browserify';
+import "lodash"; // can be used as _ // TODO: import only used code
+
+import fetchProgress from 'fetch-progress';
 
 const TESTCONFIG = [  // REPOLIST
-  {   /* ssid: "open.theater", 
-        pw: "live1234" */
-    serveruri: "/mockserver/example-repo/services.json?token={{OPENTHEATER_APP_ID}}"
+  /*{ ssid: "open.theater", 
+    //pw: "live1234",
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json?"
+  },*/
+  {
+    serveruri: "http://192.168.178.38:8080/mockserver/example-repo/projectList.json"
   },
   {
-    serveruri: "https://www.open-theater.de/example-repo/services.json"
+    serveruri: "https://www.open-theater.de/example-repo/projectList.json"
   },
 ];
-const DOM_SERVICELISTBUTTONS = document.querySelector('#serviceListButtons');
-const DOM_SERVICELIST = document.querySelector('#serviceList')
+const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
+const DOM_PROJECTLIST = document.querySelector('#projectList');
+const DOM_MEDIALIST = document.querySelector("#mediaList");
 
-
+let _repositoryUri = null;// global
 //////////////////////////////////////////////////////////////////
-
+ 
 
 console.log("loaded", openTheater);
 
-openTheater.helloWorld();
+openTheater.hideStatusBar();
 
 openTheater.getWifiSsid().then((res)=>{
   console.log(`wifi/network info: ${JSON.stringify(res)}`)
 });
 
-
-async function loadServiceListFileIfExists() {
-  return new Promise((resolve,reject)=>{
-    reject(null)
-  }) // Placeholder
-}
-
-async function showServicesToUser(serviceGroups) {
-  console.log("showServicesToUser got:",serviceGroups);
+async function showProjectsToUser(projects) {
+  console.log("showProjectsToUser got:",projects);
       
-  if (serviceGroups.length < 1) {return null}
+  if (projects.length < 1) {return null}
 
-  // document.querySelector("#serviceList")// show ServiceList
+  for (const project of projects) {
+    console.log("channelList",project);
 
-  for (const serviceGroup of serviceGroups) {
-    console.log("serviceGroup",serviceGroup);
-
-    // create serviceGroup DIV
-    const serviceGroupTitle = serviceGroup.projectPath.join(":<br>");
-    const dom_serviceGroupDiv = htmlToElem(
-      `<div class="serviceGroup">
-        <hr>  
-        <h5>${serviceGroupTitle}</h5>
+    // create channelList DIV
+    const projectTitle = project.projectPath.join(":<br>");
+    const dom_projectDiv = htmlToElem(
+      `
+      <div class="project" id="project_${project.projectPath.join("_")}">
+        <hr>
+        <h5>${projectTitle}</h5>
       </div>
       `
     );
-    DOM_SERVICELISTBUTTONS.appendChild(dom_serviceGroupDiv);
+    DOM_PROJECTLISTBUTTONS.appendChild(dom_projectDiv);
 
-    for (const service of serviceGroup.channelList){
-      console.log(service);
+    for (const channel of project.channelList){
+      console.log("channel:",channel);
       
-      // create a button for each CHANNEL inside the serviceGroups CHANNELLIST:
+      // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
         `<div style="margin:5px">
-          <button class="btn-large waves-effect waves-light">
-            ${service.label}
+          <button id="${channel.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
+            ${channel.label}
           </button>
         </div>`);
-      dom_serviceGroupDiv.appendChild(button);
-      button.addEventListener('click', ()=> {
-        document.dispatchEvent(new CustomEvent('serviceChosen', {detail:{service:service, serviceGroup:serviceGroup}}))
+      dom_projectDiv.appendChild(button);
+
+      // mark as up-to-date if channel has .lastmodified and up to date with client's cached fileList of channel
+      if(channel.lastmodified !== undefined && channel.lastmodified !== null){
+        markButtonIfUpToDate(button,project,channel);
+      }
+
+      function markButtonIfUpToDate(button,project,channel){
+        console.log(`channel ${channel.label} has lastmodified flag:`, channel.lastmodified, "will check local cached fileList.json");
+        openTheater.getFileListFromCache(project.projectPath, channel.channelUuid).then((res)=>{
+          // get latest lastmodified from FileList // CONTINUE HERE: error catching and helper functions
+          let lastmodified = 0;
+          for (const file of res.files){
+            if (file.lastmodified > lastmodified){
+              lastmodified = file.lastmodified;
+            }
+          }
+          console.log(`latest last modified from cached FileList for channel ${channel.label}:`
+            , lastmodified);
+          if (lastmodified === channel.lastmodified)
+          {
+            console.log(`channel ${channel.label} seems to have up-to-date fileList. Will mark it...`);
+            button.classList.add("up-to-date-filelist")
+          }
+          else
+          {
+            console.log(`channel ${channel.label} not up-to-date`);
+          }
+        })
+        .catch((err)=>{
+          console.log(`could not find a fileList in cache for channel ${channel.label}. 
+          So: channel needs to check for updates.`,err);
+        })
+      }
+
+      // add Eventhandler
+      button.addEventListener('click', function handler() {
+        console.log("########## got clicked ############");
+        
+        this.removeEventListener('click', handler);
+        document.dispatchEvent(new CustomEvent('channelChosen', {detail:{project:project, channel:channel}}));
       })
     }
-      
+  
   }
-    
+
   return true
 }
 
 function htmlToElem(html) {
   let temp = document.createElement('template');
-  html = html.trim(); // Never return a space text node as a result
+  html = html.trim(); // Do not return a space in a text node
   temp.innerHTML = html;
   return temp.content.firstChild;
 }
 
-async function showUpdateOptionToUserOrUpdateAutomatically(fileList){
-  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",fileList);
+
+
+function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel){
+  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
+
+  let progressbar = bar(channel.provisioningUri);
+  let progress = 0;
+
+  console.log(`files to download for ${channel.label}`, updateList);
+  
+  let fetchPromises = [];
+
+  const totalBytes = updateList.map((file)=>{return file.filesize}).reduce((last, current)=>{return last + current});
+  console.log("total Bytes to download:", totalBytes);
+  let downloadedBytes = 0;
+
+  for (let i in updateList){
+    let file = updateList[i]
+    const newpath = mergeProvisioningUriWithfilepath(channel.provisioningUri,file.filepath);
+
+    console.log(" start downloading ::",newpath);
+    
+    let fileBytesDownloadedSoFar = 0;
+
+    const fetchProm = fetch(newpath)
+    .then(
+      fetchProgress({
+        // implement onProgress method
+        onProgress(prog) {
+          let fileprogress = prog;
+          // add to progressbar
+          downloadedBytes = downloadedBytes + (fileprogress.transferred - fileBytesDownloadedSoFar);
+          fileBytesDownloadedSoFar = fileprogress.transferred;
+          progress = 100/totalBytes*downloadedBytes;
+          progressbar.set(progress);
+        },
+        onError(err) {
+          console.log(err);
+        }
+      })
+    )
+    .then((res)=>{
+      if (res.status === 200){
+        return res.blob();
+      }
+      else if (res.status >= 400){
+        console.error("ERROR CODE WHILE FETCHING ASSET", res);
+        throw "HTTP ERROR CODE RECEIVED"
+      }
+      else
+      {
+        throw "this should never happen"
+      }
+    })
+    .then((blob)=>{
+      // TODO: here add filecount to progressbar
+      // write to Disk / Cache
+      return openTheater.fileWrite(path.join(project.projectPath.join("/"),channel.channelUuid,file.filepath),blob); 
+    })
+    fetchPromises.push(fetchProm);
+  }
+ 
+  Promise.all(fetchPromises)
+  .then(async (resArray)=>{
+    console.log("download attempts done",resArray);
+    
+    resArray.forEach((res)=>{
+      console.log("res",res);
+    })
+    // write new FileList.json into Cache
+    const fileListPathCache = path.join(project.projectPath.join("/"),channel.channelUuid,"fileList.json");
+
+    const oldFileListFile = await openTheater.readFile(fileListPathCache)
+    .catch(
+      (err)=>{
+        console.error("could not read old fileList.json from device",err);
+        return {data:`{"files":[]}`};
+    });
+    console.log("oldFileListFile", oldFileListFile);
+    
+    const oldFileList = JSON.parse(oldFileListFile.data);
+    console.log("oldFileList is",oldFileList, "updateList is", updateList);
+    
+    let newFileList = oldFileList;
+    newFileList.files = _.unionBy(updateList, oldFileList.files,"filepath");
+    console.log("newFileList:", newFileList);
+    
+    openTheater.fileWrite(fileListPathCache,JSON.stringify(newFileList))
+    .then((res)=>{console.log("wrote fileList to device",res);
+    })
+    
+    progressbar.bar.remove();
+    document.dispatchEvent(new CustomEvent('provisioningDone', 
+      {detail:{project: project, chosenChannel:channel}})
+    )
+  })
+  .catch((err)=>{
+    console.error(err);
+    
+    alert(`We could not download ${channel.label}. Seems the server is not working.`)
+  })
 
   //return true
 }
 
+function mergeProvisioningUriWithfilepath(provisioningUri,filepath){
+  if (filepath.startsWith("http://") || filepath.startsWith("https://")){
+    return filepath // nothing needs to be merged. file has its own valid url
+  }
+  else{
+    let url = new URL(provisioningUri);
+    url.pathname = path.join(url.pathname,filepath);
+    return url.toString()
+  }
+}
+
+// add listener for sidebar menu
+function showPage(id){
+  document.getElementById(id).classList.remove("hidden");
+
+  if (id === "media"){
+    initMediaList();
+  }
+}
+
+document.querySelectorAll(".page-btn").forEach((btn)=>{
+  const pageName = btn.getAttribute("page-name");
+  btn.addEventListener("click",()=>{
+    // hide all pages
+    document.querySelectorAll(".page").forEach((element)=>{
+      console.log("hiding",element);
+      element.classList.add("hidden");
+    })
+    // show this page
+    showPage(pageName);
+    // close sidenav
+    const sidenav = document.querySelector('.sidenav');
+    M.Sidenav.getInstance(sidenav).close();
+  })
+})
+
+function initMediaList(){
+  console.log("initMediaList");
+  
+  DOM_MEDIALIST.innerHTML = "";
+  openTheater.readDir("")
+  .then((res)=>{
+    console.log("initMediaList",res);
+    if (res.files !== null && res.files !== undefined){
+      res.files.forEach(async (projectDir)=>{
+        const projectRes = await openTheater.readDir(projectDir);
+        console.log("initMediaList projectRes",projectRes);
+        if (projectRes.files !== null && projectRes.files !== undefined){
+          DOM_MEDIALIST.appendChild(htmlToElem(
+            `
+            <li class="collection-item">
+              ${projectDir}
+            </li>
+            `
+          ))
+          console.log("initMediaList projectRes.files",projectRes.files);
+          projectRes.files.forEach(async(channelDir)=>{
+            const channelRes = await openTheater.readDir(path.join(projectDir,channelDir));
+            console.log("initMediaList channelRes.files",channelRes.files);
+            if (channelRes.files !== null && channelRes.files !== undefined){
+              DOM_MEDIALIST.appendChild(htmlToElem(
+                `
+                <li class="collection-item avatar">
+                  <i class="material-icons circle">folder</i>
+                  <span class="title">${channelDir}</span>
+                  <a onclick="deleteAssetFile('${path.join("media",projectDir,channelDir)}')" class="secondary-content">
+                  <i class="material-icons">delete_forever</i></a>
+                </li>  
+                `
+              ))
+              channelRes.files.forEach((file)=>{
+                DOM_MEDIALIST.appendChild(htmlToElem(
+                  `
+                  <li class="collection-item avatar">
+                    <i class="material-icons circle">insert_drive_file</i>
+                    <span class="title">${file}</span>
+                    <p>File
+                    </p>
+                  </li>
+                  `
+                ))
+              })
+            }            
+          })
+        }
+      })
+    }
+  })
+
+}
+
+function deleteAssetFile(path){
+  console.log("deleting ",path);
+  
+  openTheater.deleteFile(path)
+  .then((res)=>{
+    console.log(res);
+    initMediaList();
+    initUserFlow();
+    openTheater.showToast(`deleted ${path}`)
+  })
+  .catch((err)=>{
+    console.log(err);
+    alert("could not delete file")
+  })
+}
+
+
 window.openTheater = openTheater;
+window.deleteAssetFile = deleteAssetFile;
+window.initMediaList = initMediaList;
+
+// init sidebar materialize.css
+
+document.addEventListener('DOMContentLoaded', function() {
+  M.AutoInit();
+  console.log("----- INIT M ----");
+  
+});
 
 
 /////////////////////////////////////
 ///////////// MAIN FLOW /////////////
-/////// to be read top to bottom ////
+DOM_PROJECTLIST.classList.remove("hidden");
 initUserFlow();
 
 // 1. find servers & connect to one
@@ -110,84 +364,140 @@ async function initUserFlow() {
   // create Media Root Directory if does not exist yet
   await openTheater.initMediaRootDir();
 
-  DOM_SERVICELISTBUTTONS.innerHTML = "";
-  DOM_SERVICELIST.classList.remove("hidden");
+  DOM_PROJECTLISTBUTTONS.innerHTML = "";
 
-  // only for demo reference (how to ignore REPOs)
-  let serviceList = await loadServiceListFileIfExists().catch((err)=>{});
-
-  // 1) Use REPOLIST (TESTCONFIG) to get SERVICELIST from one REPO:
-  if (!serviceList) { 
-  // 2) searches REPOLIST for SERVICELIST
-    serviceList = await openTheater.detectServer(TESTCONFIG) 
-    console.log(`found serviceList:`,serviceList);
+  // 1) Use REPOLIST (TESTCONFIG) to get PROJECTLIST from one REPO:
+  // 2) searches REPOLIST for PROJECTLIST
+  const {projectList, repository} = await openTheater.detectServer(TESTCONFIG);
+  if (projectList == undefined || projectList == null){
+    alert("could not fetch projectList from any of the Repo Servers."+ 
+          "Please check if you are online and restart app.")
   }
+  console.log(`found projectList:`,projectList);
+  // save in global scope:
+  _repositoryUri = repository;
+  console.log(`set _repositoryUri to`,repository);
 
-  // 3) get SERVICEGROUPS from SERVICELIST
-  let serviceGroups = serviceList.serviceGroups;
+  // 3) get projects from PROJECTLIST
+  let projects = projectList.projects;
 
-  console.log("awaiting showServices with param", serviceGroups);
-
-  await showServicesToUser(serviceGroups);
+  console.log("projectList from service.json:",projectList);
   
-  // 4) choose CHANNEL from SERVICELIST
-  document.addEventListener("serviceChosen",function(e) { 
-    console.log(e);
-    
-    DOM_SERVICELIST.classList.add("hidden");
-    initService(e.detail.service, e.detail.serviceGroup) // NEXT
 
-  },{ once: true }) // close EventListener after being triggered
+  if (!projects || projects === null || projects === undefined){
+    alert("could not access projects from repository. Please restart the app.");
+    throw `could not access projects from returned projectList. Probably malformed response from projectList.json`
+  }
+  console.log("awaiting showProjects with param", projects);
+
+  await showProjectsToUser(projects);
+  
+  console.log("waiting for user input (to choose projects to provision and prepare)");
+
+  // 4) choose CHANNEL from PROJECTLIST
+  document.addEventListener("channelChosen",function(e) { 
+    console.log("4) channelChosen event", e);
+    
+    //DOM_PROJECTLIST.classList.add("hidden");
+    initChannel(e.detail.project, e.detail.channel) // NEXT
+
+  },{ once: false }) // dont close EventListener after being triggered in case more than one are chosen
     
 }
 
 // 2. check if you need to update any data via provisioning API
-async function initService(service,serviceGroup){
-  console.log(`service ${service.label} was chosen by user and will be initiated`);
+async function initChannel(project,channel){
+  console.log(`channel ${channel.label} was chosen by user and will be initiated`);
   
-  const fileList =  await openTheater.getProvisioningFilesFromService(service,serviceGroup.projectPath); // check provisioning API for new content
-  if (!fileList){
+  if(channel.provisioningUri === null || channel.provisioningUri === undefined)
+  {
+    console.log("this channel does not have any provisioningUri and will not need any provisioning");
+    return document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+  }
 
-    alert(`could not connect to ${service.label}'s provisioning endpoint.`+
+  const fileList =  await openTheater.getProvisioningFilesFromProject(channel)
+  .catch((err)=>{
+    alert(`could not connect to ${channel.label}'s provisioning endpoint.`+
     "Please check your network connection and then press OK\n"+
     "Will reconnect on OK and restart the process. If error remains, please contact the theater")
-    
-    return initUserFlow(); // go back to start
-  }
-  
-  const lastFileList = await openTheater.getFileListFromCache(serviceGroup.projectPath).catch(async (err)=>{
-    console.log("dir of filelist does not exist. gonna have to download everything...",err);
-    return
-    await showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
-  })
+     window.location.reload(); // go back to start
+     throw("restarting after issue in initChannel")
+  }); // check provisioning API for new content
+  console.log("initChannel has now fileList", fileList);
 
-  if (JSON.stringify(fileList) !== JSON.stringify(lastFileList)){ // TODO: change openTheater.getFileListFromCache so it returns a list in the same format we expect from the provisioning servers.
+  const lastFileList = await openTheater.getFileListFromCache(project.projectPath, channel.channelUuid)
+  .catch(async (err)=>{
+    console.log("dir or file of filelist.json does not exist. gonna have to download everything...",err);
+    return null
+  })
+  
+  if (!fileList || fileList === null || fileList === undefined){
+    return showUpdateOptionToUserOrUpdateAutomatically(null,project,channel); 
+  }
+
+  const updateList = openTheater.getFileListDiff(lastFileList,fileList);
+
+  if (updateList.length > 0){
     console.log(`directory of filelist exists but has deviations from filelist received `+
     `from provisioning server. gonna have to download everything or at least the changed files...`,
     lastFileList, fileList);
-    return
-    showUpdateOptionToUserOrUpdateAutomatically(fileList); // TODO: philip
+    return showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel); 
   }
   else
   {
     console.log("directory of filelist exists and did not change. ready to trigger now");
-    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{serviceGroup: serviceGroup, chosenService:service}}))
-  }
-
-
-  document.addEventListener("provisioningDone",function(e) { 
-    console.log(e);
+    console.log("will dispatch CustomEvent provisiongDone now");
     
-    enterTriggerMode(e.detail.chosenService, e.detail.serviceGroup.projectPath) // NEXT
-
-  },{ once: true })
-  
+    document.dispatchEvent(new CustomEvent('provisioningDone', {detail:{project: project, chosenChannel:channel}}))
+  }
 }
 
-// CONTINUE HERE
+document.addEventListener("provisioningDone",function(e) {
+  console.log("provisioningDone eventListener triggered:",e);
+
+  activateTriggerModeForProjectButton(e.detail); 
+
+},{ once: false }) // once per channel
+
+
+async function activateTriggerModeForProjectButton(detail){
+  console.log("activateTriggerModeForProjectButton",detail);
+  let projectId = "project_"+detail.project.projectPath.join("_");
+  console.log("############### PROJECT ID is:", projectId);
+  
+  let button = document.getElementById(detail.chosenChannel.provisioningUri); 
+  let startbuttonName = `startbtn_${detail.projectId}`;
+  let startbutton = document.getElementById(startbuttonName);
+  if (startbutton === null){
+    startbutton = htmlToElem(
+      `<div style="margin:5px">
+        <button id="${startbuttonName}" class="startbtn btn-provisioning btn-large waves-effect waves-light">
+          <h5>START</h5>
+        </button>
+      </div>
+      ` 
+    );
+    document.getElementById(projectId).appendChild(startbutton);
+    startbutton.addEventListener("click",()=>{
+      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelUuid,detail.project.projectUuid)
+    })
+  }
+  button.classList.add("readyToTrigger");
+}
+
+
+// NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(service, projectPath)
+async function enterTriggerMode(repositoryUri,channelUuid, projectUuid)
 {
+  console.log("enterTriggerMode",repositoryUri, channelUuid, projectUuid);
+
+  let data = JSON.stringify({
+    repository:repositoryUri,
+    projectUuid:projectUuid,
+    channelUuid:channelUuid
+  });
+  window.location ="./client.html?data="+encodeURI(data);
   
 }
 

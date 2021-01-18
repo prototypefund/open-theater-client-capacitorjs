@@ -1,0 +1,58 @@
+{
+  "projects": [
+    {
+      "projectUuid": "09a7506a-d399-4d42-983f-47a12e028586",
+      "projectPath": [
+        "MY_INDEPENDENT_EXAMPLE_PIECE"
+      ],
+      "triggerUri": "https://trigger.open-theater.de",
+      "channelList": [
+        {
+          "channelUuid": "7eb2e01e-faef-439c-b431-08c25a374cba",
+          "label": "DE Text",
+          "triggerUri": "https://trigger.open-theater.de",          
+          "containerIds": ["text_de"]
+        },
+        {
+          "channelUuid": "d40dcbb7-f740-4f94-bb9e-0da4d19650fb",
+          "label": "DE Text + Video",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/DE_SIGN/",
+          "containerIds": ["text_de","video_de"],
+          "lastmodified": 16037178386002
+        },
+        {
+          "channelUuid": "02784de5-6a13-4a82-8c17-914e82ba0023",
+          "label": "EN Sign",
+          "triggerUri": "https://trigger.open-theater.de",
+          "containerIds": ["text_en","video_en"],
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/my_independent_example_piece/EN_SIGN/",
+          "lastmodified": 16037178358023
+        }
+      ]
+    },
+    {
+      "projectUuid": "ff277516-121b-4304-b256-d5a8b70e136a",
+      "projectPath": [
+        "Staatstheater Mannheim",
+        "Kammerspiele",
+        "Shakespears anderes Stück"
+      ],
+      "triggerUri": "https://trigger.open-theater.de",
+      "channelList": [
+        {
+          "channelUuid": "f6b070fe-0f89-4c1e-8c43-993abd9e851f",
+          "label": "DE Untertitel",
+          "triggerUri": "https://trigger.open-theater.de",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/DE_UNTERTITEL",
+          "containerIds":["text_DE"]
+        },
+        {
+          "channelUuid": "5e23407e-1d35-4953-bf17-5e07e11105d4",
+          "label": "EN Subtitles",
+          "provisioningUri": "http://192.168.178.38:8080/mockserver/staatstheater/kammerspiele/shakespeare/EN_SUBTITLES",
+          "containerIds":["text_EN"]
+        }
+      ]
+    }
+  ]
+}
