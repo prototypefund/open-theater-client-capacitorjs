@@ -22,21 +22,14 @@
 
 <body>
 
-    <div id="menu" class="input-field">
+    <div id="menu" class="">
+        <div id="track-selector" class="input-field"></div>
+        <a id="text-size-plus" class="waves-effect waves-light btn"><i class="material-icons left">add_circle_outline</i>Text Size</a>
+        <a id="text-size-minus" class="waves-effect waves-light btn"><i class="material-icons left">remove_circle_outline</i>Text Size</a>
     </div>
 
-    <div id="opentheaterapp" class="center" style="display: flex; flex-direction: column; width: 500px; height:500px;">
+    <div id="opentheaterapp" class="center draggable" style="font-size: 18px; display: flex; flex-direction: column;">
 
-        <!--
-this would be defined by 
-a) the renderer defined either by client or being delivered via trigger payload 
-AND  
-b) the containerId's from the provisioning of this particular channel
--->
-        <!--
-            <div id="text_DE"></div>
-            <div id="text_EN"></div>
--->
     </div>
     
     <div id="dynamicScript"></div>

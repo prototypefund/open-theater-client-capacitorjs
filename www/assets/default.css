@@ -1,3 +1,19 @@
+body {
+    background: black;
+    color: white;
+    height: 100vmax;
+    overflow: hidden;
+}
+
+.select-wrapper {
+    background: white;
+}
+
+
+.draggable {
+    position: absolute;
+}
+
 .ot_default > div,
 .ot_default > img,
 .ot_default > video,
@@ -5,4 +21,5 @@
     position: fixed;
     margin: 0;
     padding: 0;
+    width: 80vw;
 }

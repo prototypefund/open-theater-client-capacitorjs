@@ -11,13 +11,12 @@
     try{
         context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-        if (!context.channelUuid || !context.projectUuid || !context.repository || !context.chosenChannels){
+        if (!context.projectUuid || !context.repository || !context.chosenChannels){
             throw("data JSON handed over from provisioning URI broken")
         }
         console.log(context);
     
         console.log("repository:", context.repository);
-        console.log("channel:",context.channelUuid);
         console.log("projectUuid:", context.projectUuid);
         console.log("chosenChannels:", context.chosenChannels);
 
@@ -54,7 +53,8 @@ async function main(context){
     });
     const project = repo.projects.find((r)=>{return r.projectUuid === context.projectUuid});
 
-    const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
+    // complete obj required
+    const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.chosenChannels[0].channelUuid});
 
     const chosenChannels = context.chosenChannels;
 
@@ -131,6 +131,7 @@ function clientApp(project,startChannel,chosenChannels) {
         })
     }
 
+    /*
     availableChannels.push({
         "channelUuid": "d2ec3720-e0d5-42d7-a59e-c7fbcbaf6e3c",
         "renderer": "customRenderer.html",
@@ -139,37 +140,16 @@ function clientApp(project,startChannel,chosenChannels) {
         "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
         "label": "Multimedia Präsentation DE" // mandatory (humans need this)
     });
-
-    let availableChannelsOld = [
-        {
-            "keys": ["text_de", "image_icon"],
-            "label": "Subtitles DE"
-        },
-        {
-            "keys": ["text_en", "image_icon"],
-            "label": "Subtitles EN"
-        },
-        {
-            "renderer": "customRenderer.html",
-            "rendererJS": "customRenderer.js",
-            "rendererCSS": "customRenderer.css",
-            "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
-            "label": "Multimedia Präsentation DE" // mandatory (humans need this)
-        }
-
-    ]
-
-
+    */
 
     console.log('availableChannels',availableChannels);
-    console.log('availableChannelsOld',availableChannels);
 
-    let choosenChannel = availableChannels[0];
+    let chosenChannel = availableChannels[0];
     buildDefaultContainer();
 
 
     // build menu here
-    document.getElementById("menu").innerHTML = `<select id="channels" onchange="switchChannel(this)">
+    document.getElementById("track-selector").innerHTML = `<select id="channels" onchange="switchChannel(this)">
     ${
         availableChannels.map((channelOption,channelIndex) => {
             return `<option value="${channelIndex}">${channelOption.label}</option>`
@@ -190,16 +170,51 @@ function clientApp(project,startChannel,chosenChannels) {
     }
 
 
+    const DOM_btn_text_size_plus = document.getElementById('text-size-plus');
+    const DOM_btn_text_size_minus = document.getElementById('text-size-minus');
+    const DOM_opentheater_app = document.getElementById("opentheaterapp");
+
+    DOM_btn_text_size_plus.addEventListener("click",(e)=>{
+        let current_value = parseInt(DOM_opentheater_app.style.fontSize);
+        DOM_opentheater_app.style.fontSize = current_value + 5 + 'px';
+        console.log('click plus',e,current_value);
+    });
+    DOM_btn_text_size_minus.addEventListener("click",(e)=>{
+        let current_value = parseInt(DOM_opentheater_app.style.fontSize);
+        DOM_opentheater_app.style.fontSize = current_value - 5 + 'px';
+        console.log('click minus',e,current_value);
+    });
+
+    const DOM_menu = document.getElementById("menu");
+
+    let hideTimeout;
+
+    hideTimeout = window.setTimeout(function() {
+        DOM_menu.style.opacity = 0
+    },4000)
+
+    function autoHideMenu() {
+        console.log('autoHideMenu');
+        window.clearTimeout(hideTimeout);
+        hideTimeout = window.setTimeout(function() {
+            DOM_menu.style.opacity = 0
+        },4000)
+        DOM_menu.style.opacity = 1   
+    }
+
+    document.body.addEventListener("click",autoHideMenu);
+    document.body.addEventListener("mousemove",autoHideMenu);
+
 
     function switchChannel(selectObject) {
-        choosenChannel = availableChannels[selectObject.value];
+        chosenChannel = availableChannels[selectObject.value];
 
-        console.log('choosenChannel',choosenChannel);
+        console.log('chosenChannel',chosenChannel);
 
-        if(choosenChannel.renderer) {
+        if(chosenChannel.renderer) {
 
-            getRenderer("/assets/" + choosenChannel.renderer).then(() => {
-                getRendererDynamic("/assets/" + choosenChannel.rendererJS).then(() => {                        
+            getRenderer("/assets/" + chosenChannel.renderer).then(() => {
+                getRendererDynamic("/assets/" + chosenChannel.rendererJS).then(() => {                        
                     displayContentDefault(lastTriggerObj);
                 });
                 registerAllDraggables();
@@ -218,26 +233,26 @@ function clientApp(project,startChannel,chosenChannels) {
     function buildDefaultContainer() {
 
         document.getElementById("opentheaterapp").innerHTML = `
-        ${choosenChannel.keys.map((key) => {
+        ${chosenChannel.keys.map((key) => {
 
 
                 if (key.startsWith("text_")) {
-                    return `<div id="${key}" class="ot_default draggable">
-                                <div>placeholder</div>
+                    return `<div id="${key}" class="ot_default ">
+                                <div>placeholder ${key}</div>
                             </div>`
                 }
                 else if (key.startsWith("image_")) {
-                    return `<div id="${key}" class="ot_default draggable">
+                    return `<div id="${key}" class="ot_default ">
                                 <img alt="" src="">
                             </div>`
                 }
                 else if (key.startsWith("video_")) {
-                    return `<div id="${key}" class="draggable">
+                    return `<div id="${key}" class="">
                                 <video style="width:300px"  alt="" src="" autoplay muted playsinline></video>
                             </div>`
                 }
                 else if (key.startsWith("audio_")) {
-                    return `<div id="${key}" class="draggable">
+                    return `<div id="${key}" class="">
                                 <audio alt="" src="" autoplay ></audio>
                             </div>`
                 }
@@ -406,7 +421,7 @@ function clientApp(project,startChannel,chosenChannels) {
                     if (contentBlockId.startsWith("image_") || contentBlockId.startsWith("audio_") || contentBlockId.startsWith("video_")) {
                         if(replaceContent.startsWith('http') === false) {
                             // local file such as 1.mp4
-                            let capacitorAssetUriForChannel = await openTheater.getCapacitorAssetUriForChannel(project.projectPath,choosenChannel.channelUuid,replaceContent);                 
+                            let capacitorAssetUriForChannel = await openTheater.getCapacitorAssetUriForChannel(project.projectPath,chosenChannel.channelUuid,replaceContent);                 
                             if(capacitorAssetUriForChannel) {
                                 replaceContent = capacitorAssetUriForChannel; // 
                             }

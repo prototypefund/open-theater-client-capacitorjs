@@ -1,39 +1,98 @@
 {
   "projects": [
     {
-      "projectUUID": "09a7506a-d399-4d42-983f-47a12e028586",
+      "projectUuid": "fa4c4886-cf14-43bf-bb66-66b80e1046e1",
       "projectPath": [
-        "MY_INDEPENDENT_EXAMPLE_PIECE"
+        "NTGent", "Compassie"
       ],
       "triggerUri": "https://trigger.open-theater.de",
-      "COMMENT": "{{ }} is not URL safe. what to use instead? // i dont really like the communication here. it seems hacked. Why not ask for data with a specific, clear list param? for example: ?dataNeeded=OPENTHEATER_APP_ID+BATTERY ?I mean: what is this used for? usually for stuff that the server knows that it needs/wants to know, right?",
       "channelList": [
         {
-          "triggerUri": "https://trigger.open-theater.de",
-          "channelType": "text",
-          "label": "DE Read",
-          "channelId": "DE_Untertitel",
-          "channelTypes":["text"]
+          "channelUuid": "b4c6a368-ad49-4300-9b96-0c148749394c",
+          "label": "Text EN",
+          "containerIds": [
+            "text_en"
+          ]
         },
         {
-          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/DE_SIGN/",
-          "channelType": "video",
-          "label": "DE Sign",
-          "channelId": "DE_Sign",
+          "channelUuid": "13057bea-7e71-47c7-ab70-455322ceeba6",
+          "label": "Text NL",
+          "containerIds": [
+            "text_nl"
+          ]
+        },
+        {
+          "channelUuid": "106bb469-5653-4e4d-9b4b-795a08873ca7",
+          "provisioningUri": "https://open-theater.de/ntgent/compassie/nl_sign/",
+          "containerIds": [
+            "video_nl"
+          ],
+          "label": "Sign NL",
           "lastmodified": 16037178386002
         },
         {
+          "channelUuid": "266e8926-4052-4f3a-afb5-f4e18c21a0df",
           "triggerUri": "https://trigger.open-theater.de",
-          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/EN_SIGN/",
-          "channelType": "video",
-          "label": "EN Sign",
-          "channelId": "EN_Sign",
-          "lastmodified": 16037178358023
+          "provisioningUri": "https://open-theater.de/ntgent/compassie/nl_sign/",
+          "containerIds": [
+            "text_nl",
+            "video_nl"
+          ],
+          "label": "Sign NL + Text NL",
+          "lastmodified": 16037198358006
+        },
+        {
+          "channelUuid": "0df40741-a202-4b81-8329-2ffd49c4cb03",
+          "triggerUri": "https://trigger.open-theater.de",
+          "provisioningUri": "https://open-theater.de/ntgent/compassie/nl_audio/",
+          "containerIds": [
+            "audio_nl"          ],
+          "label": "Audio NL",
+          "lastmodified": 16037198358006
         }
       ]
     },
     {
-      "projectUUID": "ff277516-121b-4304-b256-d5a8b70e136a",
+      "projectUuid": "09a7506a-d399-4d42-983f-47a12e028586",
+      "projectPath": [
+        "MY_INDEPENDENT_EXAMPLE_PIECE"
+      ],
+      "triggerUri": "https://trigger.open-theater.de",
+      "channelList": [
+        {
+          "channelUuid": "7eb2e01e-faef-439c-b431-08c25a374cba",
+          "triggerUri": "https://trigger.open-theater.de",
+          "label": "DE Read",
+          "containerIds": [
+            "text_de"
+          ]
+        },
+        {
+          "channelUuid": "d40dcbb7-f740-4f94-bb9e-0da4d19650fb",
+          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/DE_SIGN/",
+          "containerIds": [
+            "text_de",
+            "video_de"
+          ],
+          "label": "DE Sign",
+          "lastmodified": 16037178386002
+        },
+        {
+          "channelUuid": "02784de5-6a13-4a82-8c17-914e82ba0023",
+          "triggerUri": "https://trigger.open-theater.de",
+          "provisioningUri": "https://open-theater.de/example-repo/my_independent_example_piece/EN_SIGN/",
+          "containerIds": [
+            "text_en",
+            "video_en",
+            "audio_en"
+          ],
+          "label": "EN Sign",
+          "lastmodified": 16037198358006
+        }
+      ]
+    },
+    {
+      "projectUuid": "ff277516-121b-4304-b256-d5a8b70e136a",
       "projectPath": [
         "Staatstheater_Mannheim",
         "Kammerspiele",
@@ -42,17 +101,22 @@
       "triggerUri": "https://foo.bar/project2",
       "channelList": [
         {
+          "channelUuid": "f6b070fe-0f89-4c1e-8c43-993abd9e851f",
           "triggerUri": "wss://foo.bar/project2/channelDE/",
           "provisioningUri": "https://open-theater.de/example-repo/staatstheater_mannheim/kammerspiele/shakespears_anderes_stueck/DE_UNTERTITEL",
-          "channelType": "text",
           "label": "DE Untertitel",
-          "channelId": "DE_Untertitel"
+          "containerIds": [
+            "text_DE"
+          ]
         },
         {
+          "channelUuid": "5e23407e-1d35-4953-bf17-5e07e11105d4",
           "provisioningUri": "https://open-theater.de/example-repo/staatstheater_mannheim/kammerspiele/shakespears_anderes_stueck/EN_UNTERTITEL",
           "channelType": "video",
           "label": "EN Subtitles",
-          "channelId": "EN_Untertitel"
+          "containerIds": [
+            "text_EN"
+          ]
         }
       ]
     }
