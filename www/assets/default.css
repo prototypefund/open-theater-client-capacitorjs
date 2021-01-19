@@ -1,8 +1,12 @@
 body {
     background: black;
     color: white;
-    height: 100vmax;
-    overflow: hidden;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    opacity: hidden;
 }
 
 .select-wrapper {
