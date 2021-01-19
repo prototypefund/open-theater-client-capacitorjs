@@ -205,6 +205,10 @@ function clientApp(project,startChannel,chosenChannels) {
     document.body.addEventListener("click",autoHideMenu);
     document.body.addEventListener("mousemove",autoHideMenu);
 
+    document.body.addEventListener("touchend",function() {
+        console.log('touchend');
+        autoHideMenu();
+    });
 
     function switchChannel(selectObject) {
         chosenChannel = availableChannels[selectObject.value];

@@ -22,26 +22,25 @@
 
 <body>
 
-    <div id="menu" class="">
-        <div id="track-selector" class="input-field"></div>
-        <a id="text-size-plus" class="waves-effect waves-light btn"><i class="material-icons left">add_circle_outline</i>Text Size</a>
-        <a id="text-size-minus" class="waves-effect waves-light btn"><i class="material-icons left">remove_circle_outline</i>Text Size</a>
-    </div>
+    <div id="canvas">
 
-    <div id="opentheaterapp" class="center draggable" style="font-size: 18px; display: flex; flex-direction: column;">
+        <div id="menu" class="">
+            <div id="track-selector" class="input-field"></div>
+            <a id="text-size-plus" class="waves-effect waves-light btn"><i class="material-icons left">add_circle_outline</i>Text Size</a>
+            <a id="text-size-minus" class="waves-effect waves-light btn"><i class="material-icons left">remove_circle_outline</i>Text Size</a>
+        </div>
 
+        <div id="opentheaterapp" class="center draggable" style="font-size: 18px; display: flex; flex-direction: column;">
+
+        </div>
+        
+        <div id="dynamicScript"></div>
+    
     </div>
-    
-    <div id="dynamicScript"></div>
-    
 
 <script src="https://trigger.open-theater.de/socket.io/socket.io.js"></script>
-<script>
 
-</script>
-<script type="module" src="./trigger_client.js">
-
-</script>
+<script type="module" src="./trigger_client.js"></script>
 
 </body>
 </html>
