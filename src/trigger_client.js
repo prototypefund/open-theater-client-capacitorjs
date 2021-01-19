@@ -202,11 +202,10 @@ function clientApp(project,startChannel,chosenChannels) {
         DOM_menu.style.opacity = 1   
     }
 
-    const DOM_canvas = document.getElementById('canvas');
-    DOM_canvas.addEventListener("click",autoHideMenu);
-    DOM_canvas.addEventListener("mousemove",autoHideMenu);
+    document.body.addEventListener("click",autoHideMenu);
+    document.body.addEventListener("mousemove",autoHideMenu);
 
-    DOM_canvas.addEventListener("touchend",function() {
+    document.body.addEventListener("touchend",function() {
         console.log('touchend');
         autoHideMenu();
     });
