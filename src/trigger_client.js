@@ -170,18 +170,19 @@ function clientApp(project,startChannel,chosenChannels) {
     }
 
 
-    const DOM_btn_text_size_plus = document.getElementById('text-size-plus');
-    const DOM_btn_text_size_minus = document.getElementById('text-size-minus');
+    const DOM_btn_size_plus = document.getElementById('size-plus');
+    const DOM_btn_size_minus = document.getElementById('size-minus');
     const DOM_opentheater_app = document.getElementById("opentheaterapp");
 
-    DOM_btn_text_size_plus.addEventListener("click",(e)=>{
-        let current_value = parseInt(DOM_opentheater_app.style.fontSize);
-        DOM_opentheater_app.style.fontSize = current_value + 5 + 'px';
+    DOM_btn_size_plus.addEventListener("click",(e)=>{
+        let current_value = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        console.log('current_value',current_value);
+        DOM_opentheater_app.style.transform = 'scale(' + (current_value + 0.1) + ')';
         console.log('click plus',e,current_value);
     });
-    DOM_btn_text_size_minus.addEventListener("click",(e)=>{
-        let current_value = parseInt(DOM_opentheater_app.style.fontSize);
-        DOM_opentheater_app.style.fontSize = current_value - 5 + 'px';
+    DOM_btn_size_minus.addEventListener("click",(e)=>{
+        let current_value = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        DOM_opentheater_app.style.transform = 'scale(' + (current_value - 0.1) + ')';
         console.log('click minus',e,current_value);
     });
 
@@ -286,6 +287,14 @@ function clientApp(project,startChannel,chosenChannels) {
         }
 
     });
+
+    socket.on('disconnect', () => {
+        M.toast({html: 'Server disconnected'})
+    });
+
+    socket.on("connect", () => {
+        M.toast({html: 'Server connected'})
+      });
 
 
     async function cloneItem(selector) {
