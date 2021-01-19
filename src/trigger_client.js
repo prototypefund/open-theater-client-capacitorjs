@@ -738,8 +738,8 @@ function clientApp(project,startChannel,chosenChannels) {
             let spaceBottom = screen.availHeight - this.offsetHeight;
            console.log('new top', newTop, 'spaceBottom', spaceBottom);
 
-           if(newTop < 100) {
-               newTop = 100;
+           if(newTop < 1) {
+               newTop = 0;
            }
            /*
            if(y > (screen.availHeight)) {
