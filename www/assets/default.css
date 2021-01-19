@@ -15,6 +15,16 @@ body {
     position: relative;
     z-index: 1000;
 }
+.hide-menu #menu {
+    opacity: 0;
+}
+
+#opentheaterapp {
+    border: 3px dashed white;
+}
+.hide-menu #opentheaterapp {
+    border: 3px dashed transparent
+}
 
 .select-wrapper {
     background: white;
@@ -23,6 +33,10 @@ body {
 
 .draggable {
     position: absolute;
+}
+
+.dragging {
+    border: 1px dotted white;
 }
 
 .ot_default > div,

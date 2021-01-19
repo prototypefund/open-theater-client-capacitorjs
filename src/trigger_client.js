@@ -209,16 +209,16 @@ function clientApp(project,startChannel,chosenChannels) {
     let hideTimeout;
 
     hideTimeout = window.setTimeout(function() {
-        DOM_menu.style.opacity = 0
+        document.body.classList.add('hide-menu');
     },4000)
 
     function autoHideMenu() {
         console.log('autoHideMenu');
         window.clearTimeout(hideTimeout);
         hideTimeout = window.setTimeout(function() {
-            DOM_menu.style.opacity = 0
+            document.body.classList.add('hide-menu');
         },4000)
-        DOM_menu.style.opacity = 1   
+        document.body.classList.remove('hide-menu');        
     }
 
     document.body.addEventListener("click",autoHideMenu);
@@ -676,6 +676,11 @@ function clientApp(project,startChannel,chosenChannels) {
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
+
+            console.log('dragging',e);
+            console.log('this',this);
+
+            //this.classList.add('dragging');
             
             if (e.touches){
                 x2 = e.touches[0].clientX;
@@ -726,10 +731,24 @@ function clientApp(project,startChannel,chosenChannels) {
                 y2 = e.clientY;
             }
 
-           // console.log("dragged to",x,y,x2,y2);
-            
-            element.style.top = (element.offsetTop - y) + "px";
-            element.style.left = (element.offsetLeft - x) + "px";
+           //console.log("dragged to",x,y,x2,y2);
+           let newTop = element.offsetTop - y
+           let newLeft = element.offsetLeft - x
+
+            let spaceBottom = screen.availHeight - this.offsetHeight;
+           console.log('new top', newTop, 'spaceBottom', spaceBottom);
+
+           if(newTop < 100) {
+               newTop = 100;
+           }
+           /*
+           if(y > (screen.availHeight)) {
+               newTop = screen.availHeight;
+           }
+           */
+
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
         }
 
     }
