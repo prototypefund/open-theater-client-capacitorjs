@@ -172,6 +172,11 @@ function clientApp(project,startChannel,chosenChannels) {
 
     const DOM_btn_size_plus = document.getElementById('size-plus');
     const DOM_btn_size_minus = document.getElementById('size-minus');
+
+    const DOM_btn_color_white = document.getElementById('color-white');
+    const DOM_btn_color_yellow = document.getElementById('color-yellow');
+    const DOM_btn_color_orange = document.getElementById('color-orange');
+
     const DOM_opentheater_app = document.getElementById("opentheaterapp");
 
     DOM_btn_size_plus.addEventListener("click",(e)=>{
@@ -184,6 +189,19 @@ function clientApp(project,startChannel,chosenChannels) {
         let current_value = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
         DOM_opentheater_app.style.transform = 'scale(' + (current_value - 0.1) + ')';
         console.log('click minus',e,current_value);
+    });
+
+    DOM_btn_color_white.addEventListener("click",(e)=>{
+        console.log('color white');
+        DOM_opentheater_app.style.color = 'white'        
+    });
+
+    DOM_btn_color_yellow.addEventListener("click",(e)=>{
+        DOM_opentheater_app.style.color = 'yellow'        
+    });
+
+    DOM_btn_color_orange.addEventListener("click",(e)=>{
+        DOM_opentheater_app.style.color = 'orange'        
     });
 
     const DOM_menu = document.getElementById("menu");
