@@ -20,8 +20,15 @@ body {
 }
 
 #opentheaterapp {
+    display: flex;
+    flex-direction: column;
+    left: 10%;
+    top: 180px;
+    width: 90%;
+    min-height: 120px;
     border: 3px dashed white;
 }
+
 .hide-menu #opentheaterapp {
     border: 3px dashed transparent
 }
@@ -41,12 +48,16 @@ body {
 
 .ot_default > div,
 .ot_default > img,
-.ot_default > video,
 .ot_default > audio {
-    position: fixed;
+    position: absolute;
     margin: 0;
     padding: 0;
-    width: 80vw;
+    width: 100%;
+}
+.ot_default > video {
+    position: absolute;
+    margin: 0;
+    padding: 0;
 }
 
 

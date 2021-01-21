@@ -2,6 +2,7 @@
     import * as openTheater from "./open-theater.js";
     window.openTheater = openTheater;
     import path from 'path-browserify';
+    import sanitizeHtml from 'sanitize-html';
 
     console.log("loaded openTheater.js",openTheater);
     
@@ -170,6 +171,28 @@ function clientApp(project,startChannel,chosenChannels) {
     }
 
 
+
+    window.updateBatteryStatus = updateBatteryStatus;
+
+    function updateBatteryStatus() {
+
+        let batteryIcon =  'battery_full';
+        openTheater.getBattery().then((b) => {
+
+            if(b.charging) {
+                batteryIcon =  'battery_charging_full';
+            }
+
+            let percentage = 0;
+            percentage = Math.round((b.level + Number.EPSILON) * 100)
+
+            document.getElementById('btn-battery').innerHTML = '<i class="material-icons left">'+batteryIcon+'</i>'+percentage+' %</a>'
+        })
+    }
+
+    window.setInterval(updateBatteryStatus,5000);
+
+
     const DOM_btn_size_plus = document.getElementById('size-plus');
     const DOM_btn_size_minus = document.getElementById('size-minus');
 
@@ -179,17 +202,48 @@ function clientApp(project,startChannel,chosenChannels) {
 
     const DOM_opentheater_app = document.getElementById("opentheaterapp");
 
-    DOM_btn_size_plus.addEventListener("click",(e)=>{
-        let current_value = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
-        console.log('current_value',current_value);
-        DOM_opentheater_app.style.transform = 'scale(' + (current_value + 0.1) + ')';
-        console.log('click plus',e,current_value);
-    });
-    DOM_btn_size_minus.addEventListener("click",(e)=>{
-        let current_value = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
-        DOM_opentheater_app.style.transform = 'scale(' + (current_value - 0.1) + ')';
-        console.log('click minus',e,current_value);
-    });
+    DOM_btn_size_plus.addEventListener("click",changeSizePlus);
+    DOM_btn_size_minus.addEventListener("click",changeSizeMinus);
+
+    function changeSizePlus(e) {
+
+        let scale_increment = 0.1;
+        let fontSize_increment = 2;
+
+        console.log('changeSize', e.target.parentElement)
+
+        let current_scale = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        let current_fontSize = parseInt(DOM_opentheater_app.style.fontSize);
+
+        console.log('current_fontSize',current_fontSize);
+
+        if(chosenChannel.keys[0].startsWith('video_')) {
+            DOM_opentheater_app.style.transform = 'scale(' + (current_scale + scale_increment) + ')';
+        } else {
+            DOM_opentheater_app.style.transform = 'scale(1)';
+            DOM_opentheater_app.style.fontSize = (current_fontSize + fontSize_increment) + 'px';
+        }
+        console.log('click', scale_increment, fontSize_increment,e,current_scale);
+
+    }
+
+    function changeSizeMinus(e) {
+
+        let scale_increment = -0.1;
+        let fontSize_increment = -2;
+
+        let current_scale = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        let current_fontSize = parseInt(DOM_opentheater_app.style.fontSize);
+
+        if(chosenChannel.keys[0].startsWith('video_')) {
+            DOM_opentheater_app.style.transform = 'scale(' + (current_scale + scale_increment) + ')';
+        } else {
+            DOM_opentheater_app.style.transform = 'scale(1)';
+            DOM_opentheater_app.style.fontSize = (current_fontSize + fontSize_increment) + 'px';
+        }
+        console.log('click', scale_increment, fontSize_increment,e,current_scale);
+
+    }
 
     DOM_btn_color_white.addEventListener("click",(e)=>{
         console.log('color white');
@@ -271,7 +325,7 @@ function clientApp(project,startChannel,chosenChannels) {
                 }
                 else if (key.startsWith("video_")) {
                     return `<div id="${key}" class="">
-                                <video style="width:300px"  alt="" src="" autoplay muted playsinline></video>
+                                <video style="width:500px"  alt="" src="" autoplay muted playsinline></video>
                             </div>`
                 }
                 else if (key.startsWith("audio_")) {
@@ -412,8 +466,8 @@ function clientApp(project,startChannel,chosenChannels) {
         if(parent) {
 
             // remove original element            
-            let originals = parent.querySelectorAll(':not([data-isclone])');
-            let clones = parent.querySelectorAll('[data-isclone]');
+            let originals = parent.querySelectorAll('div:not([data-isclone])');
+            let clones = parent.querySelectorAll('div[data-isclone]');
 
             if(originals.length > 0 && clones.length > 0) {
                 console.log('originals', originals);
@@ -460,9 +514,12 @@ function clientApp(project,startChannel,chosenChannels) {
                     }
 
 
-                    if (contentBlockId.startsWith("text_")) {                        
+                    if (contentBlockId.startsWith("text_")) {
                         let clone = await cloneItem(blockElement.id);
-                        clone.innerText = replaceContent;
+                        // replace \n with br
+                        let replaceContentBr = replaceContent.split('\n').join('<br />');
+                        // replaceContent needs sanitation!    
+                        clone.innerHTML = sanitizeHtml(replaceContentBr);
 
                     } else if (contentBlockId.startsWith("image_")) {
                         let clone = await cloneItem(blockElement.id);                        
@@ -486,8 +543,8 @@ function clientApp(project,startChannel,chosenChannels) {
                             videoElements[0].play();
                         }
                     } else if (contentBlockId.startsWith("html_")) {
-                        // custom html
-                        blockElement.innerHTML = replaceContent;
+                        // custom html                        
+                        blockElement.innerHTML = sanitizeHtml(replaceContent);
                     }
                 } else {
                     console.log(`${contentBlockId} content has no template block avaible to be rendered to`);
@@ -716,7 +773,7 @@ function clientApp(project,startChannel,chosenChannels) {
         function monitorDraggingOfElement(e) {
             e = e || window.event;
             e.preventDefault();
-            //console.log(e);
+            console.log('monitorDraggingOfElement',e);
 
             if (e.touches){
                 x = x2 - e.touches[0].clientX;
@@ -735,12 +792,20 @@ function clientApp(project,startChannel,chosenChannels) {
            let newTop = element.offsetTop - y
            let newLeft = element.offsetLeft - x
 
-            let spaceBottom = screen.availHeight - this.offsetHeight;
+            let spaceBottom = screen.availHeight - (e.target.offsetTop + e.target.offsetHeight);
            console.log('new top', newTop, 'spaceBottom', spaceBottom);
 
            if(newTop < 1) {
                newTop = 0;
            }
+
+
+           let halfItem = e.target.offsetWidth * -1
+
+           if(newLeft < halfItem) {
+               newLeft = halfItem
+           }
+
            /*
            if(y > (screen.availHeight)) {
                newTop = screen.availHeight;
