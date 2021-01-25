@@ -27,7 +27,8 @@
       <li><div class="divider"></div></li>
       <li><a class="subheader">APP DATA & INFO</a></li>
       <li><a class="page-btn waves-effect" page-name="media">MEDIA</a></li>
-      <li><a class="page-btn waves-effect">ABOUT</a></li>
+      <li><a class="page-btn waves-effect" page-name="about">ABOUT</a></li>
+      <li><a id="btn-exit" class="waves-effect">EXIT</a></li>
       <li><div class="divider"></div></li>
       <li><a class="subheader">CONFIG</a></li>
       <li><a class="page-btn waves-effect">REPOSITORIES</a></li>
@@ -44,12 +45,19 @@
             </div>
         </div>
 
-        <div id="media" style="position: absolute; background-color: white; top:68px;
-        min-height: 100%;width: 100%;" class="center page hidden collection" style="display: flex; flex-direction: column;">
+        <div id="media" style="position: absolute; background-color: white; top:68px; width: 100%; display: flex; flex-direction: column;" class="center page hidden collection">
             <h5>DOWNLOADED MEDIA FILES</h5>
             <ul id="mediaList">
                 <!-- will be populated with media files listed by app.js -->
             </ul>
+        </div>
+
+        <div id="about" style="position: absolute; background-color: white; top:68px; width: 100%; display: flex; flex-direction: column;" class="center page hidden collection">
+            <h4 class="center">About ]OPEN THEATER[</h4>
+            <br>
+            This is a DEMO client to show the functions of the Open Theater API.<br>
+            find more information under <a href="https://open-theater.de/">www.open-theater.de</a>
+
         </div>
 
     </div>
