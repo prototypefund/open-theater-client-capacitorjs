@@ -10,3 +10,5 @@ android
 *.mov
 *.mp3
 .vscode/settings.json
+www/app.js
+www/trigger_client.js
