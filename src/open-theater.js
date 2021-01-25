@@ -50,6 +50,26 @@ function showStatusBar(){
   return StatusBar.show();
 }
 
+/**
+ * based on cordova plugin https://github.com/fagundes/cordova-plugin-navigationbar
+ */
+function hideAndroidNavigationBar(){
+  if (PLATFORM_IS_ANDROID){
+    return NavigationBar.hide(); 
+  }
+  return
+}
+
+/**
+ * based on cordova plugin https://github.com/fagundes/cordova-plugin-navigationbar
+ */
+function showAndroidNavigationBar(){
+  if (PLATFORM_IS_ANDROID){
+    return NavigationBar.show();
+  }
+  return
+}
+
 async function showToast(content){
   const { Toast } = Plugins;
   await Toast.show({
@@ -515,7 +535,9 @@ export {
   getFileListFromCache,
   initMediaRootDir,
   getFileListDiff,
-  getCapacitorAssetUriForChannel
+  getCapacitorAssetUriForChannel,
+  hideAndroidNavigationBar,
+  showAndroidNavigationBar
   /*updateFiles,*/
 };
  

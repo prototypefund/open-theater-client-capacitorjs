@@ -43,6 +43,7 @@ window.getGetParam = getGetParam;
 
 async function main(context){
 
+    openTheater.hideAndroidNavigationBar();
 
     // Pull Project data and channel data from Disk and repository server
 

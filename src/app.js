@@ -50,6 +50,7 @@ const DOM_LOADINGBAR = document.querySelector("#loadingBar");
 
 
 openTheater.hideStatusBar();
+openTheater.hideAndroidNavigationBar();
 
 openTheater.getWifiSsid().then((res)=>{
   console.log(`wifi/network info: ${JSON.stringify(res)}`)
