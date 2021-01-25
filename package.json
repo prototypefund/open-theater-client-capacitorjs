@@ -30,6 +30,7 @@
     "@capacitor/ios": "^2.4.0",
     "capacitor-blob-writer": "^0.1.10",
     "cordova-plugin-brightness": "^0.2.0",
+    "cordova-plugin-navigationbar-color": "^0.1.0",
     "es6-promise-plugin": "^4.2.2",
     "eslint": "^7.10.0",
     "eslint-config-airbnb-base": "^14.2.0",

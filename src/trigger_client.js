@@ -1,48 +1,49 @@
 
-    import * as openTheater from "./open-theater.js";
-    window.openTheater = openTheater;
-    import path from 'path-browserify';
-    import sanitizeHtml from 'sanitize-html';
+import * as openTheater from "./open-theater.js";
+window.openTheater = openTheater;
+import path from 'path-browserify';
+import sanitizeHtml from 'sanitize-html';
 
-    console.log("loaded openTheater.js",openTheater);
-    
+console.log("loaded openTheater.js",openTheater);
 
-    let context = null;
-    window.context = context;
-    try{
-        context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-        if (!context.projectUuid || !context.repository || !context.chosenChannels){
-            throw("data JSON handed over from provisioning URI broken")
-        }
-        console.log(context);
-    
-        console.log("repository:", context.repository);
-        console.log("projectUuid:", context.projectUuid);
-        console.log("chosenChannels:", context.chosenChannels);
+let context = null;
+window.context = context;
+try{
+    context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-        main(context);
-
+    if (!context.projectUuid || !context.repository || !context.chosenChannels){
+        throw("data JSON handed over from provisioning URI broken")
     }
-    catch{
-        alert("error, need channel and projectPath. Will go back to Provisioning.");
-        //window.location = "./index.html";
-    }
+    console.log(context);
 
-    function getGetParam(name) {
+    console.log("repository:", context.repository);
+    console.log("projectUuid:", context.projectUuid);
+    console.log("chosenChannels:", context.chosenChannels);
 
-        let result = null;
-        const urlParams = new URLSearchParams(document.location.search);
-        result = urlParams.get(name);
-        return result;
-    }
+    main(context);
 
-    window.getGetParam = getGetParam;
+}
+catch{
+    alert("error, need channel and projectPath. Will go back to Provisioning.");
+    //window.location = "./index.html";
+}
+
+function getGetParam(name) {
+
+    let result = null;
+    const urlParams = new URLSearchParams(document.location.search);
+    result = urlParams.get(name);
+    return result;
+}
+
+window.getGetParam = getGetParam;
 
 
 
 async function main(context){
 
+    openTheater.hideAndroidNavigationBar();
 
     // Pull Project data and channel data from Disk and repository server
 
