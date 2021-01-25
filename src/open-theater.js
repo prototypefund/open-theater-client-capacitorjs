@@ -18,7 +18,7 @@ window.writeFile = writeFile;
 window.FilesystemDirectory = FilesystemDirectory;
 import path from 'path-browserify';
 
-const { Filesystem } = Plugins;
+const { Device, Filesystem } = Plugins;
 
 
 const MEDIA_BASE_PATH = "/media";
@@ -217,10 +217,14 @@ async function getWifiSsid(){
     return status
 }
 
-function getBattery(){
-    let batterystate = Plugins.Device.getBatteryInfo();
+async function getBattery() {
+    let batterystate = await Device.getBatteryInfo();
     console.log("battery:", batterystate);
-    return batterystate
+    // rename to match navigator.getBattery()
+    return {
+      charging: batterystate.isCharging,
+      level: batterystate.batteryLevel
+    }
 }
 
 /**
