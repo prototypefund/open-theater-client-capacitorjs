@@ -28,10 +28,15 @@ const TESTCONFIG = [  // REPOLIST
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
 const DOM_PROJECTLIST = document.querySelector('#projectList');
 const DOM_MEDIALIST = document.querySelector("#mediaList");
+const DOM_BTN_EXIT = document.getElementById('btn-exit');
 
 let _repositoryUri = null;// global
 //////////////////////////////////////////////////////////////////
- 
+
+
+DOM_BTN_EXIT.addEventListener('click', function handler() {
+  openTheater.exitApp();
+})
 
 console.log("loaded", openTheater);
 

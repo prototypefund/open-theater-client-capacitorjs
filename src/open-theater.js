@@ -50,6 +50,12 @@ function showStatusBar(){
   return StatusBar.show();
 }
 
+function exitApp() {
+  const { App } = Plugins;
+  App.exitApp()
+  return false;
+}
+
 /**
  * based on cordova plugin https://github.com/fagundes/cordova-plugin-navigationbar
  */
@@ -516,6 +522,7 @@ export {
   helloWorld,
   getPlatform,
   hideStatusBar,
+  exitApp,
   showStatusBar,
   showToast,
   getWifiSsid, 
