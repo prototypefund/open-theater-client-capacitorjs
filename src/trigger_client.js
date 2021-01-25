@@ -2,6 +2,7 @@
     import * as openTheater from "./open-theater.js";
     window.openTheater = openTheater;
     import path from 'path-browserify';
+    import sanitizeHtml from 'sanitize-html';
 
     console.log("loaded openTheater.js",openTheater);
     
@@ -11,13 +12,12 @@
     try{
         context = JSON.parse( decodeURI( getGetParam("data") ) ); // TODO: replace with openTheater.localStorage
 
-        if (!context.channelUuid || !context.projectUuid || !context.repository || !context.chosenChannels){
+        if (!context.projectUuid || !context.repository || !context.chosenChannels){
             throw("data JSON handed over from provisioning URI broken")
         }
         console.log(context);
     
         console.log("repository:", context.repository);
-        console.log("channel:",context.channelUuid);
         console.log("projectUuid:", context.projectUuid);
         console.log("chosenChannels:", context.chosenChannels);
 
@@ -54,7 +54,8 @@ async function main(context){
     });
     const project = repo.projects.find((r)=>{return r.projectUuid === context.projectUuid});
 
-    const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.channelUuid});
+    // complete obj required
+    const startChannel = project.channelList.find((r)=>{return r.channelUuid === context.chosenChannels[0].channelUuid});
 
     const chosenChannels = context.chosenChannels;
 
@@ -131,6 +132,7 @@ function clientApp(project,startChannel,chosenChannels) {
         })
     }
 
+    /*
     availableChannels.push({
         "channelUuid": "d2ec3720-e0d5-42d7-a59e-c7fbcbaf6e3c",
         "renderer": "customRenderer.html",
@@ -139,37 +141,16 @@ function clientApp(project,startChannel,chosenChannels) {
         "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
         "label": "Multimedia Präsentation DE" // mandatory (humans need this)
     });
-
-    let availableChannelsOld = [
-        {
-            "keys": ["text_de", "image_icon"],
-            "label": "Subtitles DE"
-        },
-        {
-            "keys": ["text_en", "image_icon"],
-            "label": "Subtitles EN"
-        },
-        {
-            "renderer": "customRenderer.html",
-            "rendererJS": "customRenderer.js",
-            "rendererCSS": "customRenderer.css",
-            "keys": ["text_de", "video_de", "image_de"], // mandatory (until we know a better way). konvention: renderingMediumType_languagelabel
-            "label": "Multimedia Präsentation DE" // mandatory (humans need this)
-        }
-
-    ]
-
-
+    */
 
     console.log('availableChannels',availableChannels);
-    console.log('availableChannelsOld',availableChannels);
 
-    let choosenChannel = availableChannels[0];
+    let chosenChannel = availableChannels[0];
     buildDefaultContainer();
 
 
     // build menu here
-    document.getElementById("menu").innerHTML = `<select id="channels" onchange="switchChannel(this)">
+    document.getElementById("track-selector").innerHTML = `<select id="channels" onchange="switchChannel(this)">
     ${
         availableChannels.map((channelOption,channelIndex) => {
             return `<option value="${channelIndex}">${channelOption.label}</option>`
@@ -191,15 +172,126 @@ function clientApp(project,startChannel,chosenChannels) {
 
 
 
+    window.updateBatteryStatus = updateBatteryStatus;
+
+    function updateBatteryStatus() {
+
+        let batteryIcon =  'battery_full';
+        openTheater.getBattery().then((b) => {
+
+            if(b.charging) {
+                batteryIcon =  'battery_charging_full';
+            }
+
+            let percentage = 0;
+            percentage = Math.round((b.level + Number.EPSILON) * 100)
+
+            document.getElementById('btn-battery').innerHTML = '<i class="material-icons left">'+batteryIcon+'</i>'+percentage+' %</a>'
+        })
+    }
+
+    window.setInterval(updateBatteryStatus,5000);
+
+
+    const DOM_btn_size_plus = document.getElementById('size-plus');
+    const DOM_btn_size_minus = document.getElementById('size-minus');
+
+    const DOM_btn_color_white = document.getElementById('color-white');
+    const DOM_btn_color_yellow = document.getElementById('color-yellow');
+    const DOM_btn_color_orange = document.getElementById('color-orange');
+
+    const DOM_opentheater_app = document.getElementById("opentheaterapp");
+
+    DOM_btn_size_plus.addEventListener("click",changeSizePlus);
+    DOM_btn_size_minus.addEventListener("click",changeSizeMinus);
+
+    function changeSizePlus(e) {
+
+        let scale_increment = 0.1;
+        let fontSize_increment = 2;
+
+        console.log('changeSize', e.target.parentElement)
+
+        let current_scale = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        let current_fontSize = parseInt(DOM_opentheater_app.style.fontSize);
+
+        console.log('current_fontSize',current_fontSize);
+
+        if(chosenChannel.keys[0].startsWith('video_')) {
+            DOM_opentheater_app.style.transform = 'scale(' + (current_scale + scale_increment) + ')';
+        } else {
+            DOM_opentheater_app.style.transform = 'scale(1)';
+            DOM_opentheater_app.style.fontSize = (current_fontSize + fontSize_increment) + 'px';
+        }
+        console.log('click', scale_increment, fontSize_increment,e,current_scale);
+
+    }
+
+    function changeSizeMinus(e) {
+
+        let scale_increment = -0.1;
+        let fontSize_increment = -2;
+
+        let current_scale = Number(DOM_opentheater_app.style.transform.replace(/scale\(|\)/g,''));
+        let current_fontSize = parseInt(DOM_opentheater_app.style.fontSize);
+
+        if(chosenChannel.keys[0].startsWith('video_')) {
+            DOM_opentheater_app.style.transform = 'scale(' + (current_scale + scale_increment) + ')';
+        } else {
+            DOM_opentheater_app.style.transform = 'scale(1)';
+            DOM_opentheater_app.style.fontSize = (current_fontSize + fontSize_increment) + 'px';
+        }
+        console.log('click', scale_increment, fontSize_increment,e,current_scale);
+
+    }
+
+    DOM_btn_color_white.addEventListener("click",(e)=>{
+        console.log('color white');
+        DOM_opentheater_app.style.color = 'white'        
+    });
+
+    DOM_btn_color_yellow.addEventListener("click",(e)=>{
+        DOM_opentheater_app.style.color = 'yellow'        
+    });
+
+    DOM_btn_color_orange.addEventListener("click",(e)=>{
+        DOM_opentheater_app.style.color = 'orange'        
+    });
+
+    const DOM_menu = document.getElementById("menu");
+
+    let hideTimeout;
+
+    hideTimeout = window.setTimeout(function() {
+        document.body.classList.add('hide-menu');
+    },4000)
+
+    function autoHideMenu() {
+        console.log('autoHideMenu');
+        window.clearTimeout(hideTimeout);
+        hideTimeout = window.setTimeout(function() {
+            document.body.classList.add('hide-menu');
+        },4000)
+        document.body.classList.remove('hide-menu');        
+    }
+
+    document.body.addEventListener("click",autoHideMenu);
+    document.body.addEventListener("mousemove",autoHideMenu);
+
+    document.body.addEventListener("touchend",function() {
+        console.log('touchend');
+        autoHideMenu();
+    });
+
     function switchChannel(selectObject) {
-        choosenChannel = availableChannels[selectObject.value];
+        chosenChannel = availableChannels[selectObject.value];
 
-        console.log('choosenChannel',choosenChannel);
+        console.log('chosenChannel',chosenChannel);
 
-        if(choosenChannel.renderer) {
+        if(chosenChannel.renderer) {
 
-            getRenderer("/assets/" + choosenChannel.renderer).then(() => {
-                getRendererDynamic("/assets/" + choosenChannel.rendererJS).then(() => {                        
+            getRenderer("/assets/" + chosenChannel.renderer).then(() => {
+                getRendererDynamic("/assets/" + chosenChannel.rendererJS).then(() => {                        
                     displayContentDefault(lastTriggerObj);
                 });
                 registerAllDraggables();
@@ -218,26 +310,26 @@ function clientApp(project,startChannel,chosenChannels) {
     function buildDefaultContainer() {
 
         document.getElementById("opentheaterapp").innerHTML = `
-        ${choosenChannel.keys.map((key) => {
+        ${chosenChannel.keys.map((key) => {
 
 
                 if (key.startsWith("text_")) {
-                    return `<div id="${key}" class="ot_default draggable">
-                                <div>placeholder</div>
+                    return `<div id="${key}" class="ot_default ">
+                                <div>placeholder ${key}</div>
                             </div>`
                 }
                 else if (key.startsWith("image_")) {
-                    return `<div id="${key}" class="ot_default draggable">
+                    return `<div id="${key}" class="ot_default ">
                                 <img alt="" src="">
                             </div>`
                 }
                 else if (key.startsWith("video_")) {
-                    return `<div id="${key}" class="draggable">
-                                <video style="width:300px"  alt="" src="" autoplay muted playsinline></video>
+                    return `<div id="${key}" class="">
+                                <video style="width:500px"  alt="" src="" autoplay muted playsinline></video>
                             </div>`
                 }
                 else if (key.startsWith("audio_")) {
-                    return `<div id="${key}" class="draggable">
+                    return `<div id="${key}" class="">
                                 <audio alt="" src="" autoplay ></audio>
                             </div>`
                 }
@@ -267,6 +359,14 @@ function clientApp(project,startChannel,chosenChannels) {
         }
 
     });
+
+    socket.on('disconnect', () => {
+        M.toast({html: 'Server disconnected'})
+    });
+
+    socket.on("connect", () => {
+        M.toast({html: 'Server connected'})
+      });
 
 
     async function cloneItem(selector) {
@@ -366,8 +466,8 @@ function clientApp(project,startChannel,chosenChannels) {
         if(parent) {
 
             // remove original element            
-            let originals = parent.querySelectorAll(':not([data-isclone])');
-            let clones = parent.querySelectorAll('[data-isclone]');
+            let originals = parent.querySelectorAll('div:not([data-isclone])');
+            let clones = parent.querySelectorAll('div[data-isclone]');
 
             if(originals.length > 0 && clones.length > 0) {
                 console.log('originals', originals);
@@ -406,7 +506,7 @@ function clientApp(project,startChannel,chosenChannels) {
                     if (contentBlockId.startsWith("image_") || contentBlockId.startsWith("audio_") || contentBlockId.startsWith("video_")) {
                         if(replaceContent.startsWith('http') === false) {
                             // local file such as 1.mp4
-                            let capacitorAssetUriForChannel = await openTheater.getCapacitorAssetUriForChannel(project.projectPath,choosenChannel.channelUuid,replaceContent);                 
+                            let capacitorAssetUriForChannel = await openTheater.getCapacitorAssetUriForChannel(project.projectPath,chosenChannel.channelUuid,replaceContent);                 
                             if(capacitorAssetUriForChannel) {
                                 replaceContent = capacitorAssetUriForChannel; // 
                             }
@@ -414,9 +514,12 @@ function clientApp(project,startChannel,chosenChannels) {
                     }
 
 
-                    if (contentBlockId.startsWith("text_")) {                        
+                    if (contentBlockId.startsWith("text_")) {
                         let clone = await cloneItem(blockElement.id);
-                        clone.innerText = replaceContent;
+                        // replace \n with br
+                        let replaceContentBr = replaceContent.split('\n').join('<br />');
+                        // replaceContent needs sanitation!    
+                        clone.innerHTML = sanitizeHtml(replaceContentBr);
 
                     } else if (contentBlockId.startsWith("image_")) {
                         let clone = await cloneItem(blockElement.id);                        
@@ -440,8 +543,8 @@ function clientApp(project,startChannel,chosenChannels) {
                             videoElements[0].play();
                         }
                     } else if (contentBlockId.startsWith("html_")) {
-                        // custom html
-                        blockElement.innerHTML = replaceContent;
+                        // custom html                        
+                        blockElement.innerHTML = sanitizeHtml(replaceContent);
                     }
                 } else {
                     console.log(`${contentBlockId} content has no template block avaible to be rendered to`);
@@ -630,6 +733,11 @@ function clientApp(project,startChannel,chosenChannels) {
         function dragMouseDown(e) {
             e = e || window.event;
             e.preventDefault();
+
+            console.log('dragging',e);
+            console.log('this',this);
+
+            //this.classList.add('dragging');
             
             if (e.touches){
                 x2 = e.touches[0].clientX;
@@ -665,7 +773,7 @@ function clientApp(project,startChannel,chosenChannels) {
         function monitorDraggingOfElement(e) {
             e = e || window.event;
             e.preventDefault();
-            //console.log(e);
+            console.log('monitorDraggingOfElement',e);
 
             if (e.touches){
                 x = x2 - e.touches[0].clientX;
@@ -680,10 +788,32 @@ function clientApp(project,startChannel,chosenChannels) {
                 y2 = e.clientY;
             }
 
-           // console.log("dragged to",x,y,x2,y2);
-            
-            element.style.top = (element.offsetTop - y) + "px";
-            element.style.left = (element.offsetLeft - x) + "px";
+           //console.log("dragged to",x,y,x2,y2);
+           let newTop = element.offsetTop - y
+           let newLeft = element.offsetLeft - x
+
+            let spaceBottom = screen.availHeight - (e.target.offsetTop + e.target.offsetHeight);
+           console.log('new top', newTop, 'spaceBottom', spaceBottom);
+
+           if(newTop < 1) {
+               newTop = 0;
+           }
+
+
+           let halfItem = e.target.offsetWidth * -1
+
+           if(newLeft < halfItem) {
+               newLeft = halfItem
+           }
+
+           /*
+           if(y > (screen.availHeight)) {
+               newTop = screen.availHeight;
+           }
+           */
+
+            element.style.top = newTop + "px";
+            element.style.left = newLeft + "px";
         }
 
     }

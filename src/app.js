@@ -23,7 +23,7 @@ const TESTCONFIG = [  // REPOLIST
   },
   {
     serveruri: "https://www.open-theater.de/example-repo/projectList.json"
-  },
+  }
 ];
 const DOM_PROJECTLISTBUTTONS = document.querySelector('#projectListButtons');
 const DOM_PROJECTLIST = document.querySelector('#projectList');
@@ -34,6 +34,20 @@ let _repositoryUri = null;// global
  
 
 console.log("loaded", openTheater);
+
+
+const dom_loadingBar = htmlToElem(
+  `
+  <div class="progress" id="loadingBar">
+    <div class="indeterminate"></div>
+  </div>
+  `
+);
+
+DOM_PROJECTLIST.appendChild(dom_loadingBar);
+
+const DOM_LOADINGBAR = document.querySelector("#loadingBar");
+
 
 openTheater.hideStatusBar();
 
@@ -67,7 +81,7 @@ async function showProjectsToUser(projects) {
       // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
         `<div style="margin:5px">
-          <button id="${channel.provisioningUri}" class="btn-large waves-effect waves-light btn-provisioning">
+          <button id="${channel.channelUuid}" class="btn-large waves-effect waves-light btn-provisioning">
             ${channel.label}
           </button>
         </div>`);
@@ -130,9 +144,9 @@ function htmlToElem(html) {
 
 
 function showUpdateOptionToUserOrUpdateAutomatically(updateList,project,channel){
-  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.provisioningUri);
+  console.log("showUpdateOptionToUserOrUpdateAutomatically got:",channel.channelUuid);
 
-  let progressbar = bar(channel.provisioningUri);
+  let progressbar = bar(channel.channelUuid);
   let progress = 0;
 
   console.log(`files to download for ${channel.label}`, updateList);
@@ -391,6 +405,8 @@ async function initUserFlow() {
   console.log("awaiting showProjects with param", projects);
 
   await showProjectsToUser(projects);
+
+  DOM_LOADINGBAR.style.display = 'none';
   
   console.log("waiting for user input (to choose projects to provision and prepare)");
 
@@ -471,8 +487,8 @@ async function activateTriggerModeForProjectButton(detail){
   let projectId = "project_"+detail.project.projectPath.join("_");
   console.log("############### PROJECT ID is:", projectId);
   
-  let button = document.getElementById(detail.chosenChannel.provisioningUri); 
-  let startbuttonName = `startbtn_${detail.projectId}`;
+  let button = document.getElementById(detail.chosenChannel.channelUuid); 
+  let startbuttonName = `startbtn_${detail.projectUuid}`;
   let startbutton = document.getElementById(startbuttonName);
   if (startbutton === null){
     startbutton = htmlToElem(
@@ -485,7 +501,7 @@ async function activateTriggerModeForProjectButton(detail){
     );
     document.getElementById(projectId).appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(_repositoryUri,detail.chosenChannel.channelUuid,detail.project.projectUuid,_chosenChannels)
+      enterTriggerMode(_repositoryUri, detail.project.projectUuid, _chosenChannels)
     })
   }
   button.classList.add("readyToTrigger");
@@ -494,14 +510,13 @@ async function activateTriggerModeForProjectButton(detail){
 
 // NEXT
 // 3. wait for user inputs or start of incoming cues via trigger API
-async function enterTriggerMode(repositoryUri,channelUuid, projectUuid,chosenChannels)
+async function enterTriggerMode(repositoryUri, projectUuid, chosenChannels)
 {
-  console.log("enterTriggerMode",repositoryUri, channelUuid, projectUuid);
+  console.log("enterTriggerMode",repositoryUri, projectUuid);
 
   let data = JSON.stringify({
     repository:repositoryUri,
     projectUuid:projectUuid,
-    channelUuid:channelUuid,
     chosenChannels: chosenChannels
   });
   window.location ="./client.html?data="+encodeURI(data);

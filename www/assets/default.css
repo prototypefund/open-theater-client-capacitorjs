@@ -1,8 +1,68 @@
+body {
+    background: black;
+    color: white;
+}
+
+#canvas {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#menu {
+    position: relative;
+    z-index: 1000;
+}
+.hide-menu #menu {
+    opacity: 0;
+}
+
+#opentheaterapp {
+    display: flex;
+    flex-direction: column;
+    left: 10%;
+    top: 180px;
+    width: 90%;
+    min-height: 120px;
+    border: 3px dashed white;
+}
+
+.hide-menu #opentheaterapp {
+    border: 3px dashed transparent
+}
+
+.select-wrapper {
+    background: white;
+}
+
+
+.draggable {
+    position: absolute;
+}
+
+.dragging {
+    border: 1px dotted white;
+}
+
 .ot_default > div,
 .ot_default > img,
-.ot_default > video,
 .ot_default > audio {
-    position: fixed;
+    position: absolute;
     margin: 0;
     padding: 0;
+    width: 100%;
+}
+.ot_default > video {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+}
+
+
+/*  fix for */
+
+nav .input-field {
+    height: initial;
 }
