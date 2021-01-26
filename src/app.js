@@ -72,11 +72,11 @@ async function showProjectsToUser(projects) {
     // create channelList DIV
     const projectTitle = project.projectPath.join(":<br>");
     const dom_projectDiv = htmlToElem(
-      `
-      <div class="project" id="project_${project.projectPath.join("_")}">
-        <hr>
-        <h5>${projectTitle}</h5>
-      </div>
+      `<li>
+        <div class="collapsible-header project center" id="project_${project.projectPath.join("_")}"> <!-- former class: project-->
+          <h5 class="center">${projectTitle}</h5>
+        </div>
+      </li>
       `
     );
     DOM_PROJECTLISTBUTTONS.appendChild(dom_projectDiv);
@@ -86,7 +86,7 @@ async function showProjectsToUser(projects) {
       
       // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
-        `<div style="margin:5px">
+        `<div class="collapsible-body" style="margin:5px">
           <button id="${channel.channelUuid}" class="btn-large waves-effect waves-light btn-provisioning">
             ${channel.label}
           </button>
@@ -483,32 +483,36 @@ document.addEventListener("provisioningDone",function(e) {
 
 },{ once: false }) // once per channel
 
-let _chosenChannels = [];
+let _chosenChannels = {}; // CONTINUE HERE: THIS HAS TO CHANGE TO PROJECT SPECIFIC BUFFER
 window._chosenChannels = _chosenChannels;
 
 async function activateTriggerModeForProjectButton(detail){
 
   console.log("activateTriggerModeForProjectButton",detail);
-  _chosenChannels.push(detail.chosenChannel)
+  if (!_chosenChannels[detail.project.projectUuid]){
+    _chosenChannels[detail.project.projectUuid] = [];
+  }
+  _chosenChannels[detail.project.projectUuid].push(detail.chosenChannel)
   let projectId = "project_"+detail.project.projectPath.join("_");
   console.log("############### PROJECT ID is:", projectId);
   
   let button = document.getElementById(detail.chosenChannel.channelUuid); 
-  let startbuttonName = `startbtn_${detail.projectUuid}`;
+  let startbuttonName = `startbtn_${detail.project.projectUuid}`;
   let startbutton = document.getElementById(startbuttonName);
   if (startbutton === null){
     startbutton = htmlToElem(
-      `<div style="margin:5px">
-        <button id="${startbuttonName}" class="startbtn btn-provisioning btn-large waves-effect waves-light">
-          <h5>START</h5>
-        </button>
-      </div>
+      `<div class="collapsible-body" style="margin:5px">
+          <button id="${startbuttonName}" class="startbtn btn-provisioning btn-large waves-effect waves-light">
+            <h5>START</h5>
+          </button>
+        </div>
       ` 
     );
-    document.getElementById(projectId).appendChild(startbutton);
+    document.getElementById(projectId).parentNode.appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(_repositoryUri, detail.project.projectUuid, _chosenChannels)
+      enterTriggerMode(_repositoryUri, detail.project.projectUuid, _chosenChannels[detail.project.projectUuid])
     })
+    startbutton.style = startbutton.style + "; display:block"
   }
   button.classList.add("readyToTrigger");
 }
