@@ -483,13 +483,16 @@ document.addEventListener("provisioningDone",function(e) {
 
 },{ once: false }) // once per channel
 
-let _chosenChannels = []; // CONTINUE HERE: THIS HAS TO CHANGE TO PROJECT SPECIFIC BUFFER
+let _chosenChannels = {}; // CONTINUE HERE: THIS HAS TO CHANGE TO PROJECT SPECIFIC BUFFER
 window._chosenChannels = _chosenChannels;
 
 async function activateTriggerModeForProjectButton(detail){
 
   console.log("activateTriggerModeForProjectButton",detail);
-  _chosenChannels.push(detail.chosenChannel)
+  if (!_chosenChannels[detail.project.projectUuid]){
+    _chosenChannels[detail.project.projectUuid] = [];
+  }
+  _chosenChannels[detail.project.projectUuid].push(detail.chosenChannel)
   let projectId = "project_"+detail.project.projectPath.join("_");
   console.log("############### PROJECT ID is:", projectId);
   
@@ -507,7 +510,7 @@ async function activateTriggerModeForProjectButton(detail){
     );
     document.getElementById(projectId).parentNode.appendChild(startbutton);
     startbutton.addEventListener("click",()=>{
-      enterTriggerMode(_repositoryUri, detail.project.projectUuid, _chosenChannels)
+      enterTriggerMode(_repositoryUri, detail.project.projectUuid, _chosenChannels[detail.project.projectUuid])
     })
     startbutton.style = startbutton.style + "; display:block"
   }
