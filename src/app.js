@@ -72,11 +72,11 @@ async function showProjectsToUser(projects) {
     // create channelList DIV
     const projectTitle = project.projectPath.join(":<br>");
     const dom_projectDiv = htmlToElem(
-      `
-      <div class="project" id="project_${project.projectPath.join("_")}">
-        <hr>
-        <h5>${projectTitle}</h5>
-      </div>
+      `<li>
+        <div class="collapsible-header project center" id="project_${project.projectPath.join("_")}"> <!-- former class: project-->
+          <h5 class="center">${projectTitle}</h5>
+        </div>
+      </li>
       `
     );
     DOM_PROJECTLISTBUTTONS.appendChild(dom_projectDiv);
@@ -86,7 +86,7 @@ async function showProjectsToUser(projects) {
       
       // create a button for each CHANNEL inside the channelLists CHANNELLIST:
       const button = htmlToElem(
-        `<div style="margin:5px">
+        `<div class="collapsible-body" style="margin:5px">
           <button id="${channel.channelUuid}" class="btn-large waves-effect waves-light btn-provisioning">
             ${channel.label}
           </button>

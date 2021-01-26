@@ -29,10 +29,15 @@
 }
 
 .project h5{
+    width: 100%;
     word-break: break-all;
 }
 
 .startbtn {
     background-color: blueviolet !important;
     margin-top: 0.5rem;
+}
+
+.collapsible-body {
+    padding: 0.5rem;
 }
